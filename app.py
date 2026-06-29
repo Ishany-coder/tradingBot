@@ -15,7 +15,9 @@ import streamlit as st
 import config as C
 import data
 import backtest as B
+import metrics
 import robustness
+import sp500
 import universe_2020
 
 st.set_page_config(page_title="Momentum Strategy Dashboard", layout="wide")
@@ -24,86 +26,194 @@ PIT_YEARS = 9  # window for the 2020 point-in-time backtest (reaches back to 202
 
 
 @st.cache_data(show_spinner="Running backtest (downloading data on first run)…")
-def load_bundle(mode: str = "current", force: bool = False) -> B.Bundle:
+def load_bundle(mode: str = "current", method: str = "gbm",
+                force: bool = False) -> B.Bundle:
+    if mode == "sp500":
+        # Free point-in-time S&P 500 universe (survivorship-bias-free membership
+        # + SEC EDGAR fundamentals). First build is slow: it fetches sectors and
+        # EDGAR fundamentals for ~600 names, then caches them.
+        uni, members = sp500.build_universe(PIT_YEARS, force=force)
+        return B.run_all(force=force, universe_override=uni, years=PIT_YEARS,
+                         method=method, membership=members,
+                         fundamentals_source="edgar", variant=C.STRATEGY_VARIANT)
     if mode == "pit2020":
-        return B.run_all(force=force,
+        return B.run_all(force=force, method=method, variant=C.STRATEGY_VARIANT,
                          universe_override=universe_2020.HOLDINGS_2020,
                          years=PIT_YEARS)
-    return B.run_all(force=force)
+    return B.run_all(force=force, method=method, variant=C.STRATEGY_VARIANT)
+
+
+def _naive(ts) -> pd.Timestamp:
+    ts = pd.Timestamp(ts)
+    return ts.tz_convert(None) if ts.tz is not None else ts
+
+
+@st.cache_data(ttl=120, show_spinner=False)
+def live_inception_vs_spy() -> dict | None:
+    """Live PAPER equity history (from the trade log + current account) vs a
+    buy-and-hold S&P seeded with the same capital on the inception day.
+
+    This is the FORWARD test — the only verdict that matters. Returns None until
+    the trader has logged at least one run with equity.
+    """
+    import json
+    if not C.TRADE_LOG.exists():
+        return None
+    points: dict[pd.Timestamp, float] = {}
+    for ln in C.TRADE_LOG.read_text().strip().splitlines():
+        try:
+            r = json.loads(ln)
+            if r.get("equity") and r.get("time"):
+                points[_naive(r["time"])] = float(r["equity"])
+        except Exception:  # noqa: BLE001
+            continue
+    if not points:
+        return None
+
+    # Append the freshest live equity so the curve ends at "now".
+    try:
+        from broker import PaperBroker
+        points[_naive(pd.Timestamp.now(tz="UTC"))] = PaperBroker().get_equity()
+    except Exception:  # noqa: BLE001
+        pass
+
+    dates = sorted(points)
+    strat = [points[d] for d in dates]
+    start_d, start_e = dates[0], strat[0]
+
+    # SPY buy-and-hold from inception, same starting capital.
+    spy_eq = None
+    try:
+        end = _naive(pd.Timestamp.now(tz="UTC")) + pd.Timedelta(days=2)
+        spy = data.get_prices(["SPY"], start_d.date().isoformat(),
+                              end.date().isoformat())["SPY"].dropna()
+        if not spy.empty:
+            spy.index = [_naive(i) for i in spy.index]
+            spy0 = spy.iloc[0]
+            spy_eq = []
+            for d in dates:
+                px = spy[[i <= d for i in spy.index]]
+                spy_eq.append(start_e * (px.iloc[-1] / spy0) if len(px) else start_e)
+    except Exception:  # noqa: BLE001
+        spy_eq = None
+    return {"dates": dates, "strategy": strat, "spy": spy_eq,
+            "start_date": start_d, "start_eq": start_e}
 
 
 # --- sidebar ----------------------------------------------------------------
 st.sidebar.title("Controls")
 
-univ_mode = st.sidebar.radio(
-    "Universe / backtest mode",
-    ["Current holdings (survivorship-biased)", "2020 point-in-time (realistic)"],
-    help="Current = today's top-10 ETF holdings tested back in time (inflated by "
-         "survivorship bias). 2020 = the holdings as of early 2020 (honest test).",
-)
-mode = "pit2020" if univ_mode.startswith("2020") else "current"
+# Single live model (one model to test/trade/improve). The A/B variant choice is
+# fixed by config.STRATEGY_VARIANT — no more dual-model confusion.
+VARIANT = C.STRATEGY_VARIANT
+VARIANT_NAME = {"A": "A · momentum-only", "B": "B · momentum + quality screen"}[VARIANT]
 
-variant = st.sidebar.radio(
-    "Strategy variant",
-    ["B: momentum + quality", "A: momentum-only"],
-    help="A is the price-only control; B adds the fundamental quality screen.",
+_UNIV_OPTS = ["Current holdings (survivorship-biased)", "2020 point-in-time (realistic)",
+              "S&P 500 point-in-time (free, full breadth)"]
+_UNIV_DEFAULT = {"current": 0, "pit2020": 1, "sp500": 2}.get(C.LIVE_UNIVERSE, 2)
+univ_mode = st.sidebar.radio(
+    "Test universe",
+    _UNIV_OPTS, index=_UNIV_DEFAULT,
+    help="Which data to test the model on. Current = today's top-10 ETF holdings "
+         "(survivorship-biased). 2020 = ETF holdings as of early 2020. S&P 500 = "
+         "real historical index membership (~500 names/month, no survivorship "
+         "bias) + free SEC EDGAR point-in-time fundamentals (the live universe).",
 )
+mode = ("sp500" if univ_mode.startswith("S&P") else
+        "pit2020" if univ_mode.startswith("2020") else "current")
+
+MODEL_LABELS = {
+    "LightGBM lambdarank (learning-to-rank)": "lambdarank",
+    "GBM (gradient boosting)": "gbm",
+    "MLP neural net (experimental)": "mlp",
+}
+_METHOD_DEFAULT = max(0, list(MODEL_LABELS.values()).index(C.LIVE_METHOD)
+                      if C.LIVE_METHOD in MODEL_LABELS.values() else 0)
+model_label = st.sidebar.radio(
+    "Model algorithm",
+    list(MODEL_LABELS), index=_METHOD_DEFAULT,
+    help="lambdarank optimises the monthly ranking directly (the live model). "
+         "GBM = pointwise regressor. MLP = experimental neural net (overfit-prone).",
+)
+method = MODEL_LABELS[model_label]
+
+st.sidebar.caption(f"**Model: {VARIANT_NAME}** (single live model · "
+                   f"set in config.STRATEGY_VARIANT)")
 if st.sidebar.button("↻ Refresh data (re-download)"):
+    st.session_state.force_reload = True  # consumed by the load below (force=True)
     load_bundle.clear()
     st.rerun()
 
-if mode == "pit2020":
+if mode == "sp500":
+    st.sidebar.caption(
+        f"S&P 500 point-in-time · {PIT_YEARS}y window · EDGAR fundamentals · "
+        f"${C.START_CAPITAL:,.0f} · cost {C.COST_PER_TRADE*100:.3f}%/trade · "
+        f"no survivorship bias · model: {method}"
+    )
+    st.sidebar.caption(
+        "⚠️ Sector tags are present-day (free yfinance) — a name reclassified "
+        "across GICS sectors mid-history uses today's sector. Minor; membership, "
+        "fundamentals, and prices are all point-in-time correct."
+    )
+elif mode == "pit2020":
     st.sidebar.caption(
         f"2020 point-in-time universe · {PIT_YEARS}y window · ${C.START_CAPITAL:,.0f} · "
-        f"cost {C.COST_PER_TRADE*100:.3f}%/trade · no survivorship bias"
+        f"cost {C.COST_PER_TRADE*100:.3f}%/trade · no survivorship bias · model: {method}"
     )
 else:
     st.sidebar.caption(
         f"Current holdings: {len(C.SECTOR_ETFS)} ETFs × top {C.TOP_HOLDINGS_N} · "
         f"{C.BACKTEST_YEARS}y window · ${C.START_CAPITAL:,.0f} · "
-        f"cost {C.COST_PER_TRADE*100:.3f}%/trade · ⚠️ survivorship-biased"
+        f"cost {C.COST_PER_TRADE*100:.3f}%/trade · ⚠️ survivorship-biased · model: {method}"
     )
 
 st.title("📈 Two-Stage Momentum Strategy")
-st.caption("Sector momentum → stock selection · walk-forward GBM · **simulation only, no real orders**")
+st.caption(f"Sector momentum → walk-forward selection · single live model "
+           f"**{VARIANT_NAME}** · the dashboard backtests; the paper trader places "
+           f"the orders (paper only).")
+
+_UNIV_NAME = {"sp500": "S&P 500 point-in-time", "pit2020": "2020 point-in-time",
+              "current": "current holdings"}
 
 # Gate the heavy download/backtest behind an explicit click. Nothing downloads
 # on page load; the dashboard builds only after Run is pressed (and again after
-# switching universe, since that needs different price data).
+# switching universe OR model, since each needs a fresh backtest).
 if st.sidebar.button("▶ Run backtest / load data", type="primary"):
-    st.session_state.loaded_mode = mode
-if st.session_state.get("loaded_mode") != mode:
+    st.session_state.loaded_key = (mode, method)
+if st.session_state.get("loaded_key") != (mode, method):
+    extra = (" The S&P 500 build fetches sectors + EDGAR fundamentals for ~600 "
+             "names on first run (several minutes), then caches." if mode == "sp500"
+             else "")
     st.info(
-        "Nothing downloaded yet. Press **▶ Run backtest / load data** in the "
-        "sidebar to fetch prices and run the "
-        f"**{'2020 point-in-time' if mode == 'pit2020' else 'current holdings'}** "
-        "backtest. Switching universe needs a fresh click — the data differs."
+        f"Nothing loaded for **{_UNIV_NAME[mode]} · {method}** yet. Press "
+        f"**▶ Run backtest / load data** in the sidebar to fetch data and run it. "
+        f"Changing universe or model needs a fresh click.{extra}"
     )
     st.stop()
 
-bundle = load_bundle(mode=mode)
-result = bundle.result_b if variant.startswith("B") else bundle.result_a
-other = bundle.result_a if variant.startswith("B") else bundle.result_b
+bundle = load_bundle(mode=mode, method=method,
+                     force=st.session_state.pop("force_reload", False))
+result = bundle.result_a if VARIANT == "A" else bundle.result_b
 
 # --- current holdings -------------------------------------------------------
 if not result.holdings_history:
-    st.warning(
-        f"**{result.label}** produced no book — yfinance fundamentals are too "
-        "thin over this window to run the quality screen. The momentum-only "
-        "variant (A) below still works. For a credible quality-screened "
-        "backtest, a real point-in-time fundamentals source (Financial Modeling "
-        "Prep, Sharadar) is needed."
+    st.error(
+        f"**{result.label}** produced no book on the **{_UNIV_NAME[mode]}** "
+        "universe — the data is too thin here (e.g. variant B's quality screen "
+        "needs fundamentals this universe lacks). Try the **S&P 500** universe "
+        "(EDGAR fundamentals) or switch model in config. Nothing to show."
     )
-    if not other.holdings_history:
-        st.error("Neither variant produced holdings. Try Refresh.")
-        st.stop()
-    result = other  # fall back to the variant that has data
-    st.info(f"Showing **{result.label}** instead.")
+    st.stop()
 
 last_date = max(result.holdings_history)
 weights = result.holdings_history[last_date]
 preds = result.pred_history[last_date]
 confs = result.conf_history.get(last_date, {})
+
+# gbm/mlp predict a forward RETURN (show as %); lambdarank's "pred" is an
+# ordinal within-month ranking SCORE, not a return — show it as a score.
+pred_is_return = method in ("gbm", "mlp")
+pred_col = "Predicted growth" if pred_is_return else "Edge score (rank)"
 
 rows = []
 for tkr, w in weights.items():
@@ -113,7 +223,7 @@ for tkr, w in weights.items():
         "Sector": C.SECTOR_ETFS.get(bundle.stock_sector.get(tkr, ""), "—"),
         "Weight": w,
         "Confidence": confs.get(tkr, float("nan")),
-        "Predicted growth": preds.get(tkr, float("nan")),
+        pred_col: preds.get(tkr, float("nan")),
         "ROE (now)": snap["roe"],
         "D/E (now)": snap["de"],
         "Margin (now)": snap["margin"],
@@ -122,14 +232,20 @@ holdings_df = pd.DataFrame(rows)
 
 st.subheader(f"Current Holdings — rebalanced {last_date:%b %Y}")
 st.caption("Weights are **conviction-sized** (confidence ÷ volatility), not equal. "
-           "‘Confidence’ = model P(beats median next month). ‘Predicted growth’ is an "
-           "**estimate**, not a guarantee.")
+           "‘Confidence’ = model P(beats median next month). " +
+           ("‘Predicted growth’ is an **estimate**, not a guarantee."
+            if pred_is_return else
+            "‘Edge score’ is the lambdarank model's **within-month ranking score** "
+            "(higher = preferred), not a return."))
 
 # Panel 1: treemap, sized by conviction weight, colored by sector.
 tm = holdings_df.copy()
+if pred_is_return:
+    tail = "<br>est " + (tm[pred_col] * 100).round(1).astype(str) + "%"
+else:
+    tail = "<br>score " + tm[pred_col].round(2).astype(str)
 tm["label"] = (tm["Ticker"] + "<br>" + (tm["Weight"] * 100).round(1).astype(str) + "%"
-               + "<br>conf " + (tm["Confidence"] * 100).round(0).astype(str) + "%"
-               + "<br>est " + (tm["Predicted growth"] * 100).round(1).astype(str) + "%")
+               + "<br>conf " + (tm["Confidence"] * 100).round(0).astype(str) + "%" + tail)
 fig_tm = px.treemap(
     tm, path=[px.Constant("Book"), "Sector", "label"], values="Weight",
     color="Sector", title=None,
@@ -141,17 +257,18 @@ st.plotly_chart(fig_tm, width="stretch")
 # Panel 2: sortable holdings table with a sort toggle.
 sort_by = st.radio(
     "Sort holdings by",
-    ["Position size (largest first)", "Predicted growth (highest first)",
+    ["Position size (largest first)", f"{pred_col} (highest first)",
      "Confidence (highest first)"],
     horizontal=True,
 )
 col = ("Weight" if sort_by.startswith("Position")
        else "Confidence" if sort_by.startswith("Confidence")
-       else "Predicted growth")
+       else pred_col)
 table = holdings_df.sort_values(col, ascending=False).reset_index(drop=True)
 st.dataframe(
     table.style.format({
-        "Weight": "{:.1%}", "Confidence": "{:.0%}", "Predicted growth": "{:+.2%}",
+        "Weight": "{:.1%}", "Confidence": "{:.0%}",
+        pred_col: "{:+.2%}" if pred_is_return else "{:+.3f}",
         "ROE (now)": "{:.2f}", "D/E (now)": "{:.2f}", "Margin (now)": "{:.2%}",
     }),
     width="stretch",
@@ -177,14 +294,95 @@ with left:
 with right:
     st.subheader("Metrics")
     s = result.summary
-    st.metric("CAGR", f"{s['cagr']:.2%}")
-    st.metric("Max drawdown", f"{s['max_drawdown']:.2%}")
-    st.metric("Sharpe", f"{s['sharpe']:.2f}")
-    st.metric("Monte Carlo P95 drawdown", f"{result.mc['p95_drawdown']:.2%}",
+    mr = result.monthly_returns
+    spy_mr = bundle.spy_returns.reindex(mr.index)
+    spy_cagr = metrics.cagr(spy_mr)
+    spy_total = metrics.total_return(spy_mr)
+
+    r1, r2 = st.columns(2)
+    r1.metric("Total return", f"{s['total_return']:.1%}",
+              delta=f"{s['total_return']-spy_total:+.1%} vs S&P")
+    r2.metric("CAGR", f"{s['cagr']:.2%}",
+              delta=f"{s['cagr']-spy_cagr:+.2%} vs S&P")
+    r3, r4 = st.columns(2)
+    r3.metric("Sharpe", f"{s['sharpe']:.2f}")
+    r4.metric("Sortino", f"{s.get('sortino', float('nan')):.2f}",
+              help="Like Sharpe but penalises only downside volatility.")
+    r5, r6 = st.columns(2)
+    r5.metric("Max drawdown", f"{s['max_drawdown']:.2%}")
+    r6.metric("Calmar", f"{s.get('calmar', float('nan')):.2f}",
+              help="CAGR ÷ |max drawdown| — return per unit of pain.")
+    r7, r8 = st.columns(2)
+    r7.metric("Win rate (mo)", f"{s.get('win_rate', float('nan')):.0%}",
+              help="Fraction of months with a positive return.")
+    # Book stats: average names held + average monthly turnover.
+    books = [result.holdings_history[d] for d in sorted(result.holdings_history)]
+    avg_names = (sum(len(b) for b in books) / len(books)) if books else float("nan")
+    turns = [sum(abs(books[i].get(t, 0.0) - books[i - 1].get(t, 0.0))
+                 for t in set(books[i]) | set(books[i - 1])) / 2
+             for i in range(1, len(books))]
+    avg_turn = (sum(turns) / len(turns)) if turns else float("nan")
+    r8.metric("Avg names", f"{avg_names:.0f}")
+
+    ic = result.ic or {}
+    if ic.get("n_months"):
+        st.metric("Signal IC (mean)", f"{ic['mean_ic']:+.3f}",
+                  help="Cross-sectional rank IC of predictions vs realised "
+                       f"returns — the honest signal-quality measure. IR "
+                       f"{ic['ic_ir']:.2f} · hit {ic['hit_rate']:.0%} · t "
+                       f"{ic['t_stat']:.1f} over {ic['n_months']} months. "
+                       "A stable mean ~0.03+ is a real edge; near 0 = no signal.")
+    c1, c2 = st.columns(2)
+    c1.metric("Avg turnover/mo", f"{avg_turn:.0%}",
+              help="Average fraction of the book replaced each rebalance "
+                   "(higher = more trading cost).")
+    c2.metric("MC P95 drawdown", f"{result.mc['p95_drawdown']:.2%}",
               help=f"P50: {result.mc['p50_drawdown']:.2%} over {C.MC_RUNS} reshuffles")
     if pd.notna(s["sharpe"]) and s["sharpe"] > C.SHARPE_WARN:
         st.warning(f"Sharpe {s['sharpe']:.2f} > {C.SHARPE_WARN}: suspiciously high — "
                    "likely overfitting or a lookahead bug, not a real edge.")
+    if ic.get("n_months") and abs(ic["mean_ic"]) < 0.02:
+        st.warning(f"IC {ic['mean_ic']:+.3f} is near zero — the per-name signal is "
+                   "weak; returns are mostly sector/beta/concentration, which is "
+                   "fragile out-of-sample. Don't over-trust the backtest edge.")
+
+st.divider()
+
+# --- live forward test: paper account vs S&P since inception ----------------
+st.subheader("📡 Live forward test — paper account vs S&P (since inception)")
+st.caption("The real verdict. Your live Alpaca **paper** equity vs a buy-and-hold "
+           "S&P seeded with the same capital on day one. The backtest above is the "
+           "past; this is the model proving (or disproving) itself going forward. "
+           "Populates as the trader logs runs.")
+_live = live_inception_vs_spy()
+if not _live:
+    st.info("No live runs logged yet. Once the paper trader has run, this tracks "
+            "your real equity vs S&P from the first logged run.")
+else:
+    days = max(1, (_live["dates"][-1] - _live["start_date"]).days)
+    strat_now = _live["strategy"][-1]
+    strat_ret = strat_now / _live["start_eq"] - 1.0
+    lf = go.Figure()
+    lf.add_trace(go.Scatter(x=_live["dates"], y=_live["strategy"],
+                            name="Strategy (paper)", line=dict(width=2)))
+    if _live["spy"]:
+        lf.add_trace(go.Scatter(x=_live["dates"], y=_live["spy"], name="S&P buy & hold",
+                                line=dict(width=2, dash="dash")))
+    lf.update_layout(height=320, margin=dict(t=10, l=0, r=0, b=0),
+                     yaxis_title="Value ($)", legend=dict(orientation="h"))
+    st.plotly_chart(lf, width="stretch")
+    g1, g2, g3 = st.columns(3)
+    g1.metric("Days live", f"{days}")
+    if _live["spy"]:
+        spy_ret = _live["spy"][-1] / _live["start_eq"] - 1.0
+        g2.metric("Strategy return", f"{strat_ret:+.2%}",
+                  delta=f"{strat_ret - spy_ret:+.2%} vs S&P")
+        g3.metric("S&P return", f"{spy_ret:+.2%}")
+    else:
+        g2.metric("Strategy return", f"{strat_ret:+.2%}")
+    st.caption(f"Inception {_live['start_date']:%b %d %Y} at "
+               f"${_live['start_eq']:,.0f}. Too short to mean anything yet — judge "
+               "over months, not days. (Live ≠ backtest; expect divergence.)")
 
 st.divider()
 
@@ -217,7 +415,7 @@ if run_robust:
         st.caption(f"5th–95th percentile excess: {res['p5_excess']:+.1%} … "
                    f"{res['p95_excess']:+.1%}  ·  block={res['block']}mo  ·  "
                    f"{res['months']} months  ·  variant: {result.label}  ·  "
-                   f"universe: {'2020 point-in-time' if mode=='pit2020' else 'current (biased)'}")
+                   f"universe: {_UNIV_NAME[mode]}")
         hist = go.Figure()
         hist.add_trace(go.Histogram(x=res["samples"] * 100, nbinsx=40,
                                     name="excess return"))
@@ -255,11 +453,11 @@ with tc1:
 
 if run_retrain:
     import retrain
-    bundle2020 = load_bundle(mode="pit2020")  # cached; samples built once
+    bundle2020 = load_bundle(mode="pit2020", method=method)  # cached; samples reused
     prog = st.progress(0.0, text="Re-training…")
     with st.spinner("Running re-trains (each is a full walk-forward backtest)…"):
         res = retrain.retrain_beat_spy(
-            bundle2020, n=int(n_retrain), variant="A",
+            bundle2020, n=int(n_retrain), variant="A", method=method,
             progress=lambda d, t: prog.progress(d / t, text=f"Re-training {d}/{t}…"))
     prog.empty()
     if "error" in res:
@@ -300,39 +498,6 @@ if run_retrain:
 
 st.divider()
 
-# --- head-to-head A vs B ----------------------------------------------------
-st.subheader("A vs B — does the quality screen earn its keep?")
-def _hh(r: B.BacktestResult) -> dict:
-    return {
-        "Variant": r.label,
-        "CAGR": r.summary["cagr"],
-        "Max drawdown": r.summary["max_drawdown"],
-        "Sharpe": r.summary["sharpe"],
-        "MC P95 drawdown": r.mc["p95_drawdown"],
-    }
-hh = pd.DataFrame([_hh(bundle.result_a), _hh(bundle.result_b)])
-st.dataframe(
-    hh.style.format({"CAGR": "{:.2%}", "Max drawdown": "{:.2%}", "Sharpe": "{:.2f}",
-                     "MC P95 drawdown": "{:.2%}"}),
-    width="stretch", hide_index=True,
-)
-
-a, b = bundle.result_a.summary, bundle.result_b.summary
-if pd.notna(a["sharpe"]) and pd.notna(b["sharpe"]):
-    better_sharpe = b["sharpe"] - a["sharpe"]
-    verdict = "improved" if better_sharpe > 0 else "did NOT improve"
-    st.caption(
-        f"Quality screen {verdict} Sharpe (Δ {better_sharpe:+.2f}). "
-        "Caveat: variant A also lacks the fundamental *features*, so this is a "
-        "bundle comparison, not a clean screen-only ablation — the best ~5yr "
-        "yfinance data allows."
-    )
-else:
-    st.caption(
-        "One variant produced no returns (usually B, when yfinance fundamentals "
-        "are too thin) — head-to-head comparison unavailable. A real "
-        "point-in-time fundamentals source would be needed for a credible B."
-    )
 if result.drop_log:
     avg_drop = sum(result.drop_log.values()) / len(result.drop_log)
     st.caption(f"Quality screen drops ~{avg_drop:.0f} names/month on average "

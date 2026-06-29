@@ -31,7 +31,8 @@ START = pd.Timestamp("2020-01-01")
 
 
 def retrain_beat_spy(bundle, n: int = 100, variant: str = "A",
-                     base_seed: int = 1000, progress=None) -> dict:
+                     method: str = "gbm", base_seed: int = 1000,
+                     membership=None, progress=None) -> dict:
     """Re-train the 2020 model ``n`` times and aggregate the results.
 
     Parameters
@@ -64,10 +65,10 @@ def retrain_beat_spy(bundle, n: int = 100, variant: str = "A",
     window = None
     for i in range(n):
         seed = base_seed + i
-        params = {**C.GBM_PARAMS, "random_state": seed}
         r = backtest.run_variant(label, samples, feature_cols, sector_mom, fwd,
                                  stock_sector, use_screen=use_screen,
-                                 params=params, with_mc=False)
+                                 method=method, seed=seed, with_mc=False,
+                                 membership=membership)
         mr = r.monthly_returns
         mr = mr[mr.index >= START]
         if progress is not None:
