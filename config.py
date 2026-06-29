@@ -35,7 +35,11 @@ STRATEGY_VARIANT = "A"
 # run_loop, so the live bot and every scheduled run trade the SAME thing (and a
 # scheduled run can't silently revert the account to a different universe/model).
 LIVE_UNIVERSE = "sp500"        # "current" | "pit2020" | "sp500"
-LIVE_METHOD = "lambdarank"     # "gbm" | "lambdarank" | "mlp"
+# THE model is the neural network (seed-ensembled MLP). Beat the S&P in 78% of
+# bootstrap resamples (66% recent 2023→) on the S&P 500 PIT universe — clears the
+# ≥50% bar. (lambdarank scored higher at 88% but the user chose the NN as the one
+# and only model.) See MODELS.md.
+LIVE_METHOD = "mlp"            # "gbm" | "lambdarank" | "mlp" (NN)
 N_SECTORS = 3              # Stage 1: number of top sectors to hold
 N_STOCKS_MIN = 10          # Stage 2: equal-weight book size (lower bound)
 N_STOCKS_MAX = 15          # Stage 2: equal-weight book size (upper bound)
@@ -83,6 +87,10 @@ MLP_PARAMS = dict(
     learning_rate_init=1e-3, batch_size=64, max_iter=500, early_stopping=True,
     validation_fraction=0.15, n_iter_no_change=20, random_state=42,
 )
+# Single-seed MLP output is high-variance (two seeds can correlate only ~0.7).
+# Average this many seeds per month for a stable signal — the single biggest
+# lever for making the neural net competitive.
+MLP_SEEDS = 5
 
 # --- Backtest ---------------------------------------------------------------
 BACKTEST_YEARS = 5         # history window to download / test over

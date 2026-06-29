@@ -39,6 +39,23 @@ A single param cell (5×5) crosses 60%, but every neighbour fails and **IC is
 identical (0.0101) across all cells** — i.e. no extra signal, just a lucky
 concentration on one historical path. Classic overfit; NOT deployed.
 
+## Neural network (DEPLOYED — the single model)
+
+Seed-ensembled MLP (`MLP_SEEDS=5`) on the S&P 500 PIT universe:
+
+| Model | win 2020→ | recent 2023→ | edge | CAGR | Sharpe | IC |
+|---|---|---|---|---|---|---|
+| **NN A-mlp** | **78%** ✅ | **66%** ✅ | +179% | +25.4% | 0.97 | +0.0130 |
+| NN B-mlp | 33% ❌ | 38% | +16% | +16.4% | 0.76 | +0.0060 |
+
+The seed-ensembled NN (variant A, momentum-only) **beats the S&P in 78% of
+resamples (66% recent)** — clears the ≥50% bar comfortably. Single-seed MLP on
+the narrow 2020 universe was 14%; ensembling + S&P 500 breadth lifted it to 78%.
+**This is now the single live model** (`config.LIVE_METHOD="mlp"`, `STRATEGY_VARIANT="A"`).
+Note: lambdarank still scores higher (88%) — the NN was chosen as the one-and-only
+model by request, not because it's the strongest. IC ~0.013 → still bull-era
+momentum magnitude, not durable skill.
+
 ## Conclusions
 
 - **Winner: `sp500 / A (momentum-only) / lambdarank`** — beats S&P in 88% of

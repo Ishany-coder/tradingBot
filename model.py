@@ -123,17 +123,32 @@ def _fit_lambdarank(Xtr, grades, y_win, group, Xcur, seed):
 
 
 def _fit_mlp(Xtr, y_ret, y_win, Xcur, seed):
-    p = _params(C.MLP_PARAMS, seed)
-    reg = make_pipeline(StandardScaler(), MLPRegressor(**p))
-    reg.fit(Xtr, y_ret)
-    pred = reg.predict(Xcur)
+    """Seed-ENSEMBLED MLP: average MLP_SEEDS independently-seeded nets to kill the
+    single-seed variance that otherwise makes the neural net unreliable.
+    StandardScaler is refit inside each pipeline on train rows only (no leakage).
+    """
+    base = seed if seed is not None else C.MLP_PARAMS.get("random_state", 42)
+    n = max(1, int(getattr(C, "MLP_SEEDS", 1)))
+
+    preds = []
+    for s in range(n):
+        p = _params(C.MLP_PARAMS, base + 1000 * s)
+        reg = make_pipeline(StandardScaler(), MLPRegressor(**p))
+        reg.fit(Xtr, y_ret)
+        preds.append(reg.predict(Xcur))
+    pred = np.mean(preds, axis=0)
+
     if len(np.unique(y_win)) < 2:
         conf = np.full(Xcur.shape[0], 0.5)
     else:
-        clf = make_pipeline(StandardScaler(), MLPClassifier(**p))
-        clf.fit(Xtr, y_win)
-        m = clf.named_steps["mlpclassifier"]
-        conf = clf.predict_proba(Xcur)[:, list(m.classes_).index(1)]
+        probs = []
+        for s in range(n):
+            p = _params(C.MLP_PARAMS, base + 1000 * s)
+            clf = make_pipeline(StandardScaler(), MLPClassifier(**p))
+            clf.fit(Xtr, y_win)
+            m = clf.named_steps["mlpclassifier"]
+            probs.append(clf.predict_proba(Xcur)[:, list(m.classes_).index(1)])
+        conf = np.mean(probs, axis=0)
     return pred, conf
 
 

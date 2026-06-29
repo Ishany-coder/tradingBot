@@ -220,3 +220,5 @@ target book (14 names):
   REBALANCE  BUY  CVX    $  9,394.72
 [loop] run error (continuing): A task has failed to un-serialize. Please ensure that the arguments of the function are all picklable.
 [loop] run error (continuing): A task has failed to un-serialize. Please ensure that the arguments of the function are all picklable.
+[loop] started — recompute every 6h, market hours only. Create /Users/ishanghosh/projects/tradingBot/data/state/STOP to halt. Ctrl-C to stop the loop.
+[loop] market closed — skipping rebuild this cycle.

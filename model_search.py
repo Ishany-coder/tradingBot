@@ -137,6 +137,9 @@ BATCHES = {
                        ("2026-A-lambdarank", "lambdarank", "A"),
                        ("2026-B-gbm", "gbm", "B"),
                        ("2026-A-gbm", "gbm", "A")]),
+    # Neural-net (seed-ensembled MLP) on the S&P 500 breadth universe.
+    "nn": ("sp500", [("nn-A-mlp", "mlp", "A"),
+                     ("nn-B-mlp", "mlp", "B")]),
 }
 
 

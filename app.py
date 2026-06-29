@@ -122,23 +122,11 @@ univ_mode = st.sidebar.radio(
 mode = ("sp500" if univ_mode.startswith("S&P") else
         "pit2020" if univ_mode.startswith("2020") else "current")
 
-MODEL_LABELS = {
-    "LightGBM lambdarank (learning-to-rank)": "lambdarank",
-    "GBM (gradient boosting)": "gbm",
-    "MLP neural net (experimental)": "mlp",
-}
-_METHOD_DEFAULT = max(0, list(MODEL_LABELS.values()).index(C.LIVE_METHOD)
-                      if C.LIVE_METHOD in MODEL_LABELS.values() else 0)
-model_label = st.sidebar.radio(
-    "Model algorithm",
-    list(MODEL_LABELS), index=_METHOD_DEFAULT,
-    help="lambdarank optimises the monthly ranking directly (the live model). "
-         "GBM = pointwise regressor. MLP = experimental neural net (overfit-prone).",
-)
-method = MODEL_LABELS[model_label]
-
-st.sidebar.caption(f"**Model: {VARIANT_NAME}** (single live model · "
-                   f"set in config.STRATEGY_VARIANT)")
+# ONE model only — the neural network (seed-ensembled MLP). No algorithm picker.
+method = C.LIVE_METHOD
+st.sidebar.caption("🧠 **Model: Neural Network** (seed-ensembled MLP · momentum) — "
+                   "the single live model. Beat the S&P in 78% of bootstrap "
+                   "resamples (66% recent). Set in config.LIVE_METHOD.")
 if st.sidebar.button("↻ Refresh data (re-download)"):
     st.session_state.force_reload = True  # consumed by the load below (force=True)
     load_bundle.clear()
