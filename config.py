@@ -26,10 +26,11 @@ BENCHMARK = "SPY"          # buy-and-hold comparison on the equity-curve chart
 TOP_HOLDINGS_N = 10        # constituents pulled per ETF (yfinance top holdings)
 
 # --- Strategy parameters ----------------------------------------------------
-# Single live model. "B" = momentum + quality screen (the deployed strategy);
-# "A" = momentum-only control. The whole app + trader read this, so there is
-# exactly ONE model to test/trade/improve. Change here to switch.
-STRATEGY_VARIANT = "B"
+# Single live model. "A" = momentum-only (the deployed strategy — beat the S&P in
+# 88% of bootstrap resamples on the S&P 500 PIT universe, 73% on the recent 2023→
+# slice; see MODELS.md). "B" = momentum + quality screen (failed the 60% bar at
+# 45%). The whole app + trader read this, so there is exactly ONE model. Switch here.
+STRATEGY_VARIANT = "A"
 # The deployed strategy's universe + model — used by trader.py AND the recurring
 # run_loop, so the live bot and every scheduled run trade the SAME thing (and a
 # scheduled run can't silently revert the account to a different universe/model).
