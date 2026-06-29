@@ -23,6 +23,22 @@ mostly a tech bull, so the bootstrap does not test a regime change.
 | B-gbm | 2020 PIT (narrow) | 1% | — | −16% | +7.1% | 0.59 | +0.0350 | ❌ (18mo, starved) |
 | B-lambdarank | 2020 PIT (narrow) | 0% | — | −18% | +5.6% | 0.48 | +0.0516 | ❌ (18mo, starved) |
 
+## 2020 narrow-universe param sweep — OVERFITTING DEMO (do not deploy)
+
+Sweeping `N_SECTORS` × `N_STOCKS_MAX` on the narrow 2020 universe (A/lambdarank):
+
+| N_SECTORS | N_STOCKS | win-rate | edge | IC |
+|---|---|---|---|---|
+| 5 | 5 | **76%** ✅ | +30% | 0.0101 |
+| 5 | 8 | 58% ❌ | −8% | 0.0101 |
+| 5 | 12 | 11% ❌ | −66% | 0.0101 |
+| 4 | 5 | 51% ❌ | −28% | 0.0101 |
+| 3 | 5 | 37% ❌ | −49% | 0.0101 |
+
+A single param cell (5×5) crosses 60%, but every neighbour fails and **IC is
+identical (0.0101) across all cells** — i.e. no extra signal, just a lucky
+concentration on one historical path. Classic overfit; NOT deployed.
+
 ## Conclusions
 
 - **Winner: `sp500 / A (momentum-only) / lambdarank`** — beats S&P in 88% of
