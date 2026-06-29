@@ -1,0 +1,39 @@
+Running 2020->now backtest (downloading ~9yr history; be patient)…
+$ATVI: possibly delisted; no timezone found
+
+1 Failed download:
+['ATVI']: possibly delisted; no timezone found
+[data] retrying 1 tickers individually: ['ATVI']…
+$ATVI: possibly delisted; no timezone found
+
+1 Failed download:
+['ATVI']: possibly delisted; no timezone found
+[data] no price data after retry (genuinely unavailable): ['ATVI']
+[WARNING] B: momentum + quality: ~16 names dropped/month by the quality screen. ~5yr yfinance fundamentals may be too thin to trust the screen; a real point-in-time source (FMP, Sharadar) would be needed for a credible result.
+
+=== STRATEGY A — 2020 point-in-time universe (no survivorship bias) (2020-01-31 -> 2026-05-31, 77 months) ===
+  total return : +168.0%
+  CAGR         : +16.61%
+  max drawdown : -14.22%
+  Sharpe       : 1.00
+  $100k -> $268,044
+
+=== S&P 500 (SPY buy & hold) (2020-01-31 -> 2026-05-31, 77 months) ===
+  total return : +148.6%
+  CAGR         : +15.25%
+  max drawdown : -23.93%
+  Sharpe       : 0.91
+  $100k -> $248,579
+
+=== STRATEGY B (+ quality screen, limited fundamentals history) (2024-11-30 -> 2026-05-31, 19 months) ===
+  total return : +4.8%
+  CAGR         : +3.03%
+  max drawdown : -14.52%
+  Sharpe       : 0.29
+  $100k -> $104,833
+
+================= VERDICT =================
+  Strategy A : +168.0%  ($268,044)
+  S&P 500    : +148.6%  ($248,579)
+  Edge vs S&P: +19.5% total  |  CAGR +1.36%
+==========================================

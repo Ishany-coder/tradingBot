@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  launchd template for the unattended trader loop (macOS).
+  Install:
+    cp com.tradingbot.trader.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.tradingbot.trader.plist
+  Stop:
+    launchctl unload ~/Library/LaunchAgents/com.tradingbot.trader.plist
+  Adjust paths below if the project moves.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.tradingbot.trader</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/ishanghosh/projects/tradingBot/.venv/bin/python</string>
+        <string>/Users/ishanghosh/projects/tradingBot/run_loop.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/ishanghosh/projects/tradingBot</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONUNBUFFERED</key>
+        <string>1</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/ishanghosh/projects/tradingBot/data/state/loop.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/ishanghosh/projects/tradingBot/data/state/loop.err.log</string>
+</dict>
+</plist>
