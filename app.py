@@ -125,11 +125,12 @@ univ_mode = st.sidebar.radio(
 mode = ("current" if univ_mode.startswith("Current") else
         "pit2020" if univ_mode.startswith("2020") else "sp500")
 
-# ONE model only — the neural network (seed-ensembled MLP). No algorithm picker.
+# The model is the ENSEMBLE — rank-blend of GBM + lambdarank + NN. No picker.
 method = C.LIVE_METHOD
-st.sidebar.caption("🧠 **Model: Neural Network** (seed-ensembled MLP · momentum) — "
-                   "the single live model. Beat the S&P in 78% of bootstrap "
-                   "resamples (66% recent). Set in config.LIVE_METHOD.")
+st.sidebar.caption("🧠 **Model: Ensemble** (GBM + lambdarank + neural-net "
+                   "rank-blend, + ETF-relative-strength feature) — the live "
+                   "model. Beat the S&P in 79% of bootstrap resamples (66% "
+                   "recent). Set in config.LIVE_METHOD.")
 if st.sidebar.button("↻ Refresh data (re-download)"):
     st.session_state.force_reload = True  # consumed by the load below (force=True)
     load_bundle.clear()

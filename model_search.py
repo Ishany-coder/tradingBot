@@ -140,6 +140,9 @@ BATCHES = {
     # Neural-net (seed-ensembled MLP) on the S&P 500 breadth universe.
     "nn": ("sp500", [("nn-A-mlp", "mlp", "A"),
                      ("nn-B-mlp", "mlp", "B")]),
+    # Ensemble/stack: rank-blend of GBM + lambdarank + MLP on the S&P 500.
+    "ensemble": ("sp500", [("ens-A", "ensemble", "A"),
+                           ("ens-B", "ensemble", "B")]),
 }
 
 

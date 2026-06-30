@@ -56,6 +56,26 @@ Note: lambdarank still scores higher (88%) — the NN was chosen as the one-and-
 model by request, not because it's the strongest. IC ~0.013 → still bull-era
 momentum magnitude, not durable skill.
 
+## Ensemble (DEPLOYED) — rank-blend of GBM + lambdarank + NN
+
+The "run multiple models and combine them" approach: each month, run all three
+models, convert each to cross-sectional ranks, average the ranks. Feature set
+now also includes `etf_rs` ("ETFs that are working" — beta to the leading-ETF
+basket).
+
+| Model | win 2020→ | recent 2023→ | edge | CAGR | Sharpe | IC |
+|---|---|---|---|---|---|---|
+| **Ensemble A** (deployed) | **79%** ✅ | **66%** ✅ | +312% | +31.0% | 1.01 | +0.012 |
+| lambdarank A (best single) | 88% | 73% | +310% | +30.7% | 1.04 | +0.016 |
+| GBM A | 84% | 70% | +292% | +30.1% | 1.02 | +0.004 |
+| NN A (ensembled MLP) | 78% | 66% | +179% | +25.4% | 0.97 | +0.013 |
+
+The equal-weight rank-blend (79%) clears the ≥60% bar and is more decorrelated /
+robust than any single model, but came in BELOW lambdarank-alone (88%) — the
+weaker NN drags the average. A lambdarank-weighted blend would score higher but
+is mild in-sample tuning. Deployed as `config.LIVE_METHOD="ensemble"`,
+variant A.
+
 ## Conclusions
 
 - **Winner: `sp500 / A (momentum-only) / lambdarank`** — beats S&P in 88% of

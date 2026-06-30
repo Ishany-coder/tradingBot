@@ -35,11 +35,12 @@ STRATEGY_VARIANT = "A"
 # run_loop, so the live bot and every scheduled run trade the SAME thing (and a
 # scheduled run can't silently revert the account to a different universe/model).
 LIVE_UNIVERSE = "sp500"        # "current" | "pit2020" | "sp500"
-# THE model is the neural network (seed-ensembled MLP). Beat the S&P in 78% of
+# THE model is the ENSEMBLE: rank-blend of GBM + lambdarank + seed-ensembled NN
+# (the "run multiple models, combine them" approach). Beat the S&P in 79% of
 # bootstrap resamples (66% recent 2023→) on the S&P 500 PIT universe — clears the
-# ≥50% bar. (lambdarank scored higher at 88% but the user chose the NN as the one
-# and only model.) See MODELS.md.
-LIVE_METHOD = "mlp"            # "gbm" | "lambdarank" | "mlp" (NN)
+# ≥60% bar, and is more decorrelated/robust than any single model. (lambdarank
+# alone scores higher at 88%.) See MODELS.md / model._fit_ensemble.
+LIVE_METHOD = "ensemble"       # "gbm" | "lambdarank" | "mlp" | "ensemble"
 N_SECTORS = 3              # Stage 1: number of top sectors to hold
 N_STOCKS_MIN = 10          # Stage 2: equal-weight book size (lower bound)
 N_STOCKS_MAX = 15          # Stage 2: equal-weight book size (upper bound)

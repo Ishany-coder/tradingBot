@@ -30,11 +30,13 @@ import universe as U
 # build_samples). Z-scoring puts every name on the same per-month scale, which
 # is what a cross-sectional ranker should compare — raw momentum/fundamentals
 # live on wildly different scales and drift over time.
-PRICE_FEATURES = ["mom_12_1_z", "mom_6_z", "mom_3_z", "vol_z"]
+# etf_rs = "ETFs that are working" — each stock's beta to the leading-momentum
+# sector-ETF basket (price-based, point-in-time). In both feature sets.
+PRICE_FEATURES = ["mom_12_1_z", "mom_6_z", "mom_3_z", "vol_z", "etf_rs_z"]
 ALL_FEATURES = PRICE_FEATURES + ["roe_z", "de_z", "margin_z"]
 
 # Raw columns that get a per-month cross-sectional z-score sibling (``_z``).
-_Z_BASE = ["mom_12_1", "mom_6", "mom_3", "vol", "roe", "de", "margin"]
+_Z_BASE = ["mom_12_1", "mom_6", "mom_3", "vol", "etf_rs", "roe", "de", "margin"]
 
 
 @dataclass
@@ -97,6 +99,9 @@ def build_samples(force: bool = False, universe_override: dict | None = None,
     vol = F.volatility_panel(daily, mprices.index)
     fwd = F.forward_return_panel(mprices)
     sector_mom = F.sector_momentum(mprices, list(C.SECTOR_ETFS))
+    # "ETFs that are working": beta of each stock to the leading-ETF basket.
+    _basket = F.leaders_basket_returns(daily, sector_mom)
+    etf_rs = F.etf_rs_beta_panel(daily, _basket, mprices.index)
 
     # Point-in-time fundamentals timeline per stock (built once). EDGAR gives
     # filing-dated, multi-year fundamentals; yfinance is the thin fallback.
@@ -119,6 +124,7 @@ def build_samples(force: bool = False, universe_override: dict | None = None,
                 "mom_6": _at(moms["mom_6"], date, stk),
                 "mom_3": _at(moms["mom_3"], date, stk),
                 "vol": _at(vol, date, stk),
+                "etf_rs": _at(etf_rs, date, stk),
                 "target": _at(fwd, date, stk),
                 "roe": float("nan"),
                 "de": float("nan"),

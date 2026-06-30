@@ -52,6 +52,54 @@ def sector_momentum(mprices: pd.DataFrame, etfs: list[str]) -> pd.DataFrame:
     return sub.shift(C.MOM_SKIP) / sub.shift(C.MOM_LONG) - 1.0
 
 
+# --- "ETFs that are working" relative-strength feature ----------------------
+
+def leaders_basket_returns(daily: pd.DataFrame, sector_mom: pd.DataFrame,
+                           top_k: int = 4) -> pd.Series:
+    """Daily returns of an equal-weight basket of the top-``top_k`` momentum sector
+    ETFs — i.e. "the ETFs that are working".
+
+    Membership at any day is set by the most recent MONTH-END's 12-1 momentum
+    ranking, so it only uses information known before that day (point-in-time, no
+    look-ahead).
+    """
+    import bisect
+    dr = daily.pct_change()
+    leaders: dict = {}
+    for t in sector_mom.index:
+        row = sector_mom.loc[t].dropna()
+        if not row.empty:
+            leaders[t] = list(row.sort_values(ascending=False).index[:top_k])
+    me_dates = sorted(leaders)
+    basket = pd.Series(index=dr.index, dtype=float)
+    if not me_dates:
+        return basket
+    for d in dr.index:
+        i = bisect.bisect_right(me_dates, d) - 1  # most recent month-end <= d
+        if i < 0:
+            continue
+        cols = [e for e in leaders[me_dates[i]] if e in dr.columns]
+        if cols:
+            basket.loc[d] = dr.loc[d, cols].mean()
+    return basket
+
+
+def etf_rs_beta_panel(daily: pd.DataFrame, basket: pd.Series,
+                      month_index: pd.DatetimeIndex, window: int = 120) -> pd.DataFrame:
+    """Trailing-``window``-day beta of each ticker's daily returns on the leaders
+    basket, sampled at each month-end. High beta => the name rides whatever
+    themes are leading now. Pure price data, fully point-in-time.
+    """
+    dr = daily.pct_change()
+    bvar = basket.rolling(window).var()
+    out = {}
+    for col in dr.columns:
+        cov = dr[col].rolling(window).cov(basket)
+        out[col] = cov / bvar
+    panel = pd.DataFrame(out)
+    return panel.reindex(month_index, method="ffill")
+
+
 # --- point-in-time fundamentals (Backtest B) --------------------------------
 
 # yfinance line-item labels drift between tickers/versions; try several.

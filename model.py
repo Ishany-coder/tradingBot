@@ -46,7 +46,7 @@ import lightgbm as lgb
 
 import config as C
 
-METHODS = ("gbm", "lambdarank", "mlp")
+METHODS = ("gbm", "lambdarank", "mlp", "ensemble")
 
 
 def _winner_labels(train: pd.DataFrame) -> np.ndarray:
@@ -152,10 +152,35 @@ def _fit_mlp(Xtr, y_ret, y_win, Xcur, seed):
     return pred, conf
 
 
+def _ranks(x) -> np.ndarray:
+    """0..n-1 ascending ranks (higher value -> higher rank). Within-month only."""
+    x = np.asarray(x, dtype=float)
+    return x.argsort().argsort().astype(float)
+
+
+def _fit_ensemble(task):
+    """Stack GBM + lambdarank + seed-ensembled MLP by averaging their per-month
+    cross-sectional RANKS (robust, no extra overfit). Confidence = mean of heads.
+
+    The three models have different inductive biases, so blending their rankings
+    is more stable than any one alone — the research-recommended improvement.
+    """
+    seed = task["seed"]
+    pg, cg = _fit_gbm(task["Xtr"], task["y_ret"], task["y_win"], task["Xcur"], seed)
+    pl, cl = _fit_lambdarank(task["Xtr"], task["grades"], task["y_win"],
+                             task["group"], task["Xcur"], seed)
+    pm, cm = _fit_mlp(task["Xtr"], task["y_ret"], task["y_win"], task["Xcur"], seed)
+    pred = (_ranks(pg) + _ranks(pl) + _ranks(pm)) / 3.0
+    conf = (np.asarray(cg) + np.asarray(cl) + np.asarray(cm)) / 3.0
+    return pred, conf
+
+
 def _run_task(task: dict):
     """Dispatch one month's fit to the chosen method. Returns [(idx, pred, conf)]."""
     method, idx, seed = task["method"], task["idx"], task["seed"]
-    if method == "lambdarank":
+    if method == "ensemble":
+        pred, conf = _fit_ensemble(task)
+    elif method == "lambdarank":
         pred, conf = _fit_lambdarank(task["Xtr"], task["grades"], task["y_win"],
                                      task["group"], task["Xcur"], seed)
     elif method == "mlp":
@@ -223,7 +248,7 @@ def walk_forward_predict(samples: pd.DataFrame, feature_cols: list[str],
                 "y_ret": train["target"].to_numpy(),
                 "y_win": _winner_labels(train),
             }
-            if method == "lambdarank":
+            if method in ("lambdarank", "ensemble"):
                 # rows are sorted by date (level 0) => groups are contiguous.
                 task["group"] = train.groupby(level=0).size().tolist()
                 task["grades"] = _grades(train, int(C.RANK_GRADES))
