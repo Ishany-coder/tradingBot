@@ -108,19 +108,22 @@ st.sidebar.title("Controls")
 VARIANT = C.STRATEGY_VARIANT
 VARIANT_NAME = {"A": "A · momentum-only", "B": "B · momentum + quality screen"}[VARIANT]
 
-_UNIV_OPTS = ["Current holdings (survivorship-biased)", "2020 point-in-time (realistic)",
-              "S&P 500 point-in-time (free, full breadth)"]
-_UNIV_DEFAULT = {"current": 0, "pit2020": 1, "sp500": 2}.get(C.LIVE_UNIVERSE, 2)
+_UNIV_OPTS = ["S&P 500 point-in-time — the REAL test (RECOMMENDED, ~500 names, honest)",
+              "Current holdings (~30 names · survivorship-biased → INFLATED, fake-good)",
+              "2020 ETF-holdings (~30 narrow names · loses to S&P · not a fair test)"]
+_UNIV_DEFAULT = 0  # always default to the S&P 500 universe (the honest, real one)
 univ_mode = st.sidebar.radio(
     "Test universe",
     _UNIV_OPTS, index=_UNIV_DEFAULT,
-    help="Which data to test the model on. Current = today's top-10 ETF holdings "
-         "(survivorship-biased). 2020 = ETF holdings as of early 2020. S&P 500 = "
-         "real historical index membership (~500 names/month, no survivorship "
-         "bias) + free SEC EDGAR point-in-time fundamentals (the live universe).",
+    help="ONLY the S&P 500 universe is an honest test: real historical index "
+         "membership (~500 names, no survivorship bias) + EDGAR fundamentals — "
+         "the live universe (model beats S&P ~78%). 'Current holdings' is "
+         "survivorship-biased so it looks fake-GREAT (~97%); '2020 ETF-holdings' "
+         "is a narrow ~30-name slice that loses (~9%). Judge the model ONLY on "
+         "S&P 500.",
 )
-mode = ("sp500" if univ_mode.startswith("S&P") else
-        "pit2020" if univ_mode.startswith("2020") else "current")
+mode = ("current" if univ_mode.startswith("Current") else
+        "pit2020" if univ_mode.startswith("2020") else "sp500")
 
 # ONE model only — the neural network (seed-ensembled MLP). No algorithm picker.
 method = C.LIVE_METHOD
