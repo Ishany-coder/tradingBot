@@ -254,9 +254,10 @@ def walk_forward_predict(samples: pd.DataFrame, feature_cols: list[str],
                 task["grades"] = _grades(train, int(C.RANK_GRADES))
             yield task
 
-    # Fan the independent per-month fits across all cores. Generator + lazy
-    # dispatch keeps only a few training slices materialised at a time.
-    results = Parallel(n_jobs=-1, prefer="processes")(
+    # Fan the independent per-month fits across a BOUNDED worker pool (n_jobs=-1
+    # OOM-kills smaller machines on the ensemble). Generator + lazy dispatch
+    # keeps only a few training slices materialised at a time.
+    results = Parallel(n_jobs=getattr(C, "N_JOBS", 6), prefer="processes")(
         delayed(_run_task)(task) for task in _tasks()
     )
 

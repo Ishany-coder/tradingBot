@@ -61,6 +61,9 @@ VOL_WINDOW_DAYS = 60       # trailing volatility feature (daily-return std)
 FUND_LAG_QUARTERS = 2
 
 # --- Model ------------------------------------------------------------------
+N_JOBS = 6                 # parallel walk-forward workers. -1 (all cores) OOM-kills
+                           # 16GB machines on the ensemble (every worker fits
+                           # GBM+LGBM+5 MLPs at once); 6 is stable and nearly as fast.
 MIN_TRAIN_MONTHS = 24      # months of history required before first prediction
 GBM_PARAMS = dict(
     n_estimators=200,
