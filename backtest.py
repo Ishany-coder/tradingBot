@@ -52,6 +52,7 @@ class BacktestResult:
     mc: dict
     drop_log: dict = field(default_factory=dict)   # {date: n_excluded} (B only)
     ic: dict = field(default_factory=dict)         # signal quality (see metrics)
+    exposure: dict = field(default_factory=dict)   # {date: overlay multiplier}
 
 
 @dataclass
@@ -171,19 +172,31 @@ def _top_sectors(sector_mom: pd.DataFrame, date) -> list[str]:
 
 
 def _select(date, preds_at_t, samples, stock_sector, top_sectors, use_screen,
-            members=None):
-    """Stage 2: select the book (by edge) and size it (by conviction).
+            members=None, prev_w=None, prev_sectors=None):
+    """Stage 2: select the book (by edge) and size it.
 
     ``preds_at_t`` is a DataFrame indexed by ticker with ``pred`` (edge) and
-    ``confidence`` columns. Selection ranks by ``pred``; sizing uses
-    confidence / volatility. Returns (weights dict, n_dropped_by_screen).
+    ``confidence`` columns. Returns (weights dict, n_dropped_by_screen).
 
-    ``members`` (set or None): if given, only names that were index members at
-    ``date`` are eligible — point-in-time membership gating that removes
-    survivorship bias (a name added to the index later can't be picked earlier).
+    Turnover control (both reduce churn from rank noise, not signal):
+      * sector hysteresis — a sector enters at rank <= N_SECTORS but an
+        incumbent sector only exits when it falls below SECTOR_EXIT_RANK;
+      * rank banding — incumbent names stay while ranked <= RANK_BAND_EXIT;
+        new names only enter at rank < N_STOCKS_MAX.
+
+    Diversification: max MAX_NAMES_PER_SECTOR names per sector; breadth floor
+    N_STOCKS_MIN (fewer eligible names => empty book, never a 2-name 50/50).
+
+    ``members`` (set or None): point-in-time index membership gating.
     """
     chosen = set(top_sectors[: C.N_SECTORS])
-    # Candidates = predicted names whose owning sector is in the top 3 (and, if
+    # Sector hysteresis: previously-held sectors stay while still ranked in the
+    # top SECTOR_EXIT_RANK — a rank-3/4 flip no longer swaps a whole book.
+    if prev_sectors:
+        for s in prev_sectors:
+            if s in top_sectors and top_sectors.index(s) < C.SECTOR_EXIT_RANK:
+                chosen.add(s)
+    # Candidates = predicted names whose owning sector is chosen (and, if
     # membership is enforced, that were actually in the index this month).
     cands = [t for t in preds_at_t.index
              if stock_sector.get(t) in chosen
@@ -217,17 +230,42 @@ def _select(date, preds_at_t, samples, stock_sector, top_sectors, use_screen,
     if not cands:
         return {}, dropped
 
-    # Selection: top N by predicted return (edge).
+    # Rank everyone (0 = best predicted).
     ranked = preds_at_t.loc[cands, "pred"].sort_values(ascending=False)
-    book = list(ranked.index[: C.N_STOCKS_MAX])
+    rank_of = {t: i for i, t in enumerate(ranked.index)}
+    held = set(prev_w or {})
 
-    # Sizing: conviction = confidence / volatility, capped + normalised.
+    # Incumbents keep their seat while ranked <= RANK_BAND_EXIT (rank banding);
+    # best-ranked incumbents first if we must trim.
+    incumbents = sorted((t for t in held if rank_of.get(t, 10**9) < C.RANK_BAND_EXIT),
+                        key=lambda t: rank_of[t])
+    entrants = [t for t in ranked.index
+                if t not in held and rank_of[t] < C.N_STOCKS_MAX]
+
+    # Fill the book: incumbents, then entrants, respecting the per-sector cap.
+    book: list[str] = []
+    per_sec: dict[str, int] = {}
+    for t in incumbents + entrants:
+        if len(book) >= C.N_STOCKS_MAX:
+            break
+        sec = stock_sector.get(t, "?")
+        if per_sec.get(sec, 0) >= C.MAX_NAMES_PER_SECTOR:
+            continue
+        book.append(t)
+        per_sec[sec] = per_sec.get(sec, 0) + 1
+
+    # Breadth floor: a too-thin book (bad-data month) is worse than no book.
+    if len(book) < C.N_STOCKS_MIN:
+        return {}, dropped
+
     candidates = {
         t: {"confidence": float(preds_at_t.at[t, "confidence"]),
             "vol": _at_scalar(samples, date, t, "vol")}
         for t in book
     }
-    return sizing.conviction_weights(candidates), dropped
+    weights = sizing.conviction_weights(candidates)  # mode from config
+    weights = sizing.apply_sector_cap(weights, stock_sector)
+    return weights, dropped
 
 
 def _at_scalar(samples, date, ticker, col):
@@ -237,19 +275,55 @@ def _at_scalar(samples, date, ticker, col):
         return float("nan")
 
 
+def _exposure(t, spy_monthly, past_returns) -> float:
+    """Risk-overlay exposure multiplier for month ``t`` (uses only data <= t).
+
+    * Regime gate (Faber/TSMOM): SPY month-end close below its
+      REGIME_SMA_MONTHS-month SMA => scale to REGIME_OFF_EXPOSURE. Long-only
+      momentum's worst episodes (2008-09) live below this line.
+    * Vol targeting (Moreira-Muir): scale by TARGET_VOL / trailing realized vol
+      of the strategy's own past returns. Never levers above 1.
+    """
+    exp = 1.0
+    if spy_monthly is not None and t in spy_monthly.index:
+        hist = spy_monthly.loc[:t].dropna()
+        if len(hist) >= C.REGIME_SMA_MONTHS:
+            sma = hist.iloc[-C.REGIME_SMA_MONTHS:].mean()
+            if hist.iloc[-1] < sma:
+                exp *= C.REGIME_OFF_EXPOSURE
+    if len(past_returns) >= C.VOL_LOOKBACK_MONTHS:
+        realized = (pd.Series(past_returns[-C.VOL_LOOKBACK_MONTHS:]).std()
+                    * (12 ** 0.5))
+        if realized and realized > 0:
+            exp *= min(1.0, C.TARGET_VOL / realized)
+    return exp
+
+
 def run_variant(label, samples, feature_cols, sector_mom, fwd, stock_sector,
                 use_screen, method="gbm", seed=None, with_mc=True,
-                membership=None) -> BacktestResult:
+                membership=None, spy_monthly=None,
+                preds_override=None) -> BacktestResult:
     """Walk-forward predict, then simulate monthly rebalancing.
 
-    method  : model method "gbm" | "lambdarank" | "mlp" (see model.py).
+    method  : model method "gbm" | "lambdarank" | "mlp" | "ensemble".
     seed    : override the model ``random_state`` (re-train robustness loop).
     with_mc : run the Monte-Carlo drawdown reshuffle (``MC_RUNS`` permutations).
         Set False when calling this in a tight loop to skip that cost.
     membership : optional object with ``.asof(date) -> set`` for point-in-time
         index-membership gating in selection (S&P 500 PIT universe).
+    spy_monthly : SPY month-end price series for the regime gate (optional).
+
+    Weights stored in holdings_history are POST-overlay (regime gate + vol
+    target + caps): they may sum to < 1, the remainder being cash. The live
+    trader trades them as-is, so backtest and live share one risk pipeline.
+
+    preds_override : (date,ticker)-indexed DataFrame with pred+confidence —
+        skips model training entirely. Used by ablations (e.g. a naive
+        momentum-rank baseline through the identical pipeline) and by cost /
+        sizing sensitivity tests that reuse one trained prediction set.
     """
-    preds = model.walk_forward_predict(samples, feature_cols, method=method, seed=seed)
+    preds = (preds_override if preds_override is not None else
+             model.walk_forward_predict(samples, feature_cols, method=method, seed=seed))
     if preds.empty:
         # Data too thin to ever reach MIN_TRAIN_MONTHS (typically Backtest B
         # when yfinance fundamentals don't cover enough history). Return an
@@ -261,7 +335,10 @@ def run_variant(label, samples, feature_cols, sector_mom, fwd, stock_sector,
 
     monthly_ret = {}
     holdings_hist, pred_hist, conf_hist, sector_hist, drop_log = {}, {}, {}, {}, {}
+    exposure_hist: dict = {}
     prev_w: dict[str, float] = {}
+    prev_sectors: list[str] = []
+    past_rets: list[float] = []
 
     for t in decision_months:
         if t not in sector_mom.index:
@@ -272,12 +349,19 @@ def run_variant(label, samples, feature_cols, sector_mom, fwd, stock_sector,
         preds_at_t = preds.xs(t, level=0)  # DataFrame: pred, confidence
         members = membership.asof(t) if membership is not None else None
         weights, dropped = _select(t, preds_at_t, samples, stock_sector,
-                                   top_sectors, use_screen, members=members)
+                                   top_sectors, use_screen, members=members,
+                                   prev_w=prev_w, prev_sectors=prev_sectors)
         if use_screen:
             drop_log[t] = dropped
         if not weights:
             prev_w = {}
+            prev_sectors = sector_hist[t]
             continue
+
+        # Risk overlays: regime gate + vol targeting scale the whole book.
+        exp = _exposure(t, spy_monthly, past_rets)
+        weights = {k: w * exp for k, w in weights.items()}
+        exposure_hist[t] = exp
 
         holdings_hist[t] = weights
         pred_hist[t] = {k: float(preds_at_t.at[k, "pred"]) for k in weights}
@@ -288,18 +372,23 @@ def run_variant(label, samples, feature_cols, sector_mom, fwd, stock_sector,
                        for k in set(weights) | set(prev_w))
         cost = turnover * C.COST_PER_TRADE
 
-        # Realised CONVICTION-WEIGHTED return over t -> t+1. Drop names whose
-        # forward return is missing and renormalise over the rest. NaN in the
-        # final month => skip (can't realise).
+        # Realised book return over t -> t+1. Weights may sum to < 1 (cash =
+        # 0 return). Names with a missing forward return keep the book's
+        # investment level: their weight is re-spread over the available names
+        # (renormalise within the invested sleeve, then scale back).
+        invested = sum(weights.values())
         avail = {k: w for k, w in weights.items()
                  if k in fwd.columns and pd.notna(fwd.at[t, k])}
         if not avail:
             prev_w = weights
+            prev_sectors = sector_hist[t]
             continue
         wsum = sum(avail.values())
-        gross = sum((w / wsum) * fwd.at[t, k] for k, w in avail.items())
+        gross = sum((w / wsum) * fwd.at[t, k] for k, w in avail.items()) * invested
         monthly_ret[t] = gross - cost
+        past_rets.append(monthly_ret[t])
         prev_w = weights
+        prev_sectors = sector_hist[t]
 
     # Raw signal quality (rank IC of predictions vs realised returns), computed
     # over every scored name — independent of selection/sizing/costs.
@@ -326,6 +415,7 @@ def run_variant(label, samples, feature_cols, sector_mom, fwd, stock_sector,
         mc=mc,
         drop_log=drop_log,
         ic=ic,
+        exposure=exposure_hist,
     )
 
 
@@ -384,17 +474,21 @@ def run_all(force: bool = False, universe_override: dict | None = None,
     samples, mprices, sector_mom, fwd, uni, stock_sector = build_samples(
         force=force, universe_override=universe_override, years=years,
         fundamentals_source=fundamentals_source)
+    spy_monthly = (mprices[C.BENCHMARK]
+                   if C.BENCHMARK in mprices.columns else None)
 
     if variant in ("both", "A"):
         result_a = run_variant("A: momentum-only", samples, PRICE_FEATURES,
                                sector_mom, fwd, stock_sector, use_screen=False,
-                               method=method, membership=membership)
+                               method=method, membership=membership,
+                               spy_monthly=spy_monthly)
     else:
         result_a = _empty_result("A: momentum-only")
     if variant in ("both", "B"):
         result_b = run_variant("B: momentum + quality", samples, ALL_FEATURES,
                                sector_mom, fwd, stock_sector, use_screen=True,
-                               method=method, membership=membership)
+                               method=method, membership=membership,
+                               spy_monthly=spy_monthly)
     else:
         result_b = _empty_result("B: momentum + quality")
 

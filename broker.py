@@ -73,7 +73,8 @@ class PaperBroker:
         r = requests.get(f"{self.base}/positions", headers=self.h, timeout=30)
         r.raise_for_status()
         return {p["symbol"]: {"qty": float(p["qty"]),
-                              "market_value": float(p["market_value"])}
+                              "market_value": float(p["market_value"]),
+                              "unrealized_plpc": float(p.get("unrealized_plpc") or 0.0)}
                 for p in r.json()}
 
     def is_market_open(self) -> bool:
@@ -81,16 +82,35 @@ class PaperBroker:
         r.raise_for_status()
         return bool(r.json().get("is_open", False))
 
+    def get_open_orders(self) -> list[dict]:
+        r = requests.get(f"{self.base}/orders", headers=self.h,
+                         params={"status": "open", "limit": 500}, timeout=30)
+        r.raise_for_status()
+        return r.json()
+
     # --- writes -------------------------------------------------------------
+    def cancel_all_orders(self) -> int:
+        """Cancel every open order. Called at cycle start so the planner never
+        diffs against positions while stale orders are still working (and a
+        crash mid-cycle can't leave orphans that double-fill next cycle)."""
+        r = requests.delete(f"{self.base}/orders", headers=self.h, timeout=30)
+        r.raise_for_status()
+        return len(r.json()) if isinstance(r.json(), list) else 0
+
     def submit_notional(self, symbol: str, dollars: float, side: str,
-                        dry_run: bool = False) -> dict:
+                        dry_run: bool = False,
+                        client_order_id: str | None = None) -> dict:
         """Submit a fractional-$ market order. side = 'buy' | 'sell'.
 
+        client_order_id (deterministic per cycle+symbol) makes retries
+        idempotent: Alpaca rejects a duplicate id instead of double-filling.
         Returns the order JSON (or a synthetic record when dry_run).
         """
         dollars = round(abs(dollars), 2)
         plan = {"symbol": symbol, "notional": dollars, "side": side,
                 "type": "market", "time_in_force": "day"}
+        if client_order_id:
+            plan["client_order_id"] = client_order_id[:48]
         if dry_run:
             return {"dry_run": True, **plan}
         r = requests.post(f"{self.base}/orders", headers=self.h, json=plan, timeout=30)
@@ -98,9 +118,15 @@ class PaperBroker:
         return r.json()
 
     def liquidate(self, symbol: str, dry_run: bool = False) -> dict:
-        """Close an entire position (used when a name drops out of the book)."""
+        """Close an entire position (used when a name drops out of the book).
+
+        cancel_orders=true: Alpaca 422s a position-close while the symbol has
+        working orders unless they are cancelled with it.
+        """
         if dry_run:
             return {"dry_run": True, "symbol": symbol, "action": "liquidate"}
-        r = requests.delete(f"{self.base}/positions/{symbol}", headers=self.h, timeout=30)
+        r = requests.delete(f"{self.base}/positions/{symbol}",
+                            headers=self.h, params={"cancel_orders": "true"},
+                            timeout=30)
         r.raise_for_status()
         return r.json()

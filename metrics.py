@@ -130,6 +130,45 @@ def win_rate(monthly_returns: pd.Series) -> float:
     return float((r > 0).mean()) if len(r) else float("nan")
 
 
+def deflated_sharpe(monthly_returns: pd.Series, n_trials: int,
+                    trial_sharpes: list[float] | None = None) -> dict[str, float]:
+    """Deflated Sharpe Ratio (Bailey & López de Prado 2014).
+
+    Haircuts an observed Sharpe for MULTIPLE TESTING: having searched
+    ``n_trials`` configurations and reported the best, some Sharpe is expected
+    by pure chance. DSR = P(true Sharpe > 0 | the search), via the PSR evaluated
+    at the expected maximum Sharpe of ``n_trials`` random trials.
+
+    Returns dict with monthly-scale observed SR, the expected-max benchmark
+    SR0, and ``dsr`` (probability, 0..1 — want >= 0.95). NaN-safe.
+    """
+    r = monthly_returns.dropna()
+    nan = {"sr_monthly": float("nan"), "sr0_monthly": float("nan"),
+           "dsr": float("nan"), "n_trials": n_trials, "n_obs": len(r)}
+    if len(r) < 12 or n_trials < 1:
+        return nan
+    sr = float(r.mean() / r.std(ddof=1))  # monthly-scale Sharpe
+    t_n = len(r)
+    skew = float(r.skew())
+    kurt = float(r.kurtosis()) + 3.0  # pandas gives excess kurtosis
+
+    # Expected maximum SR under n_trials independent zero-skill trials
+    # (Bailey-LdP): E[max] ~ sqrt(V) * ((1-g)*Z^-1(1-1/N) + g*Z^-1(1-1/(N*e))).
+    from scipy.stats import norm
+    if trial_sharpes and len(trial_sharpes) > 1:
+        var_trials = float(np.var(trial_sharpes, ddof=1))
+    else:
+        var_trials = 1.0 / t_n  # null variance of an SR estimate
+    gamma = 0.5772156649015329
+    n = max(2, n_trials)
+    sr0 = np.sqrt(var_trials) * ((1 - gamma) * norm.ppf(1 - 1.0 / n)
+                                 + gamma * norm.ppf(1 - 1.0 / (n * np.e)))
+    denom = np.sqrt(max(1e-12, 1 - skew * sr + (kurt - 1) / 4.0 * sr ** 2))
+    dsr = float(norm.cdf(((sr - sr0) * np.sqrt(t_n - 1)) / denom))
+    return {"sr_monthly": sr, "sr0_monthly": float(sr0), "dsr": dsr,
+            "n_trials": n_trials, "n_obs": t_n}
+
+
 def summarize(monthly_returns: pd.Series) -> dict[str, float]:
     """Bundle the headline metrics for one strategy."""
     return {

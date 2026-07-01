@@ -106,11 +106,45 @@ MC_SEED = 7
 # --- Guardrails -------------------------------------------------------------
 SHARPE_WARN = 2.5          # above this, warn: likely overfit / lookahead bug
 
-# --- Position sizing (conviction, not equal weight) -------------------------
-# weight_i proportional to confidence_i / volatility_i, then capped + normalised.
-MAX_WEIGHT = 0.25          # no single name above 25% of the book
-INVEST_FRACTION = 0.98     # keep a small cash buffer; never lever
+# --- Position sizing --------------------------------------------------------
+# SIZING_MODE: "inverse_vol" (default — confidence heads showed ~no calibrated
+# information at IC~0.01, so sizing by 1/vol drops the noise and its turnover),
+# "conviction" (confidence/vol, the old mode), or "equal".
+SIZING_MODE = "inverse_vol"
+MAX_WEIGHT = 0.12          # ~1.5-2x equal weight for a 15-name book; 25% single-name
+                           # in a high-vol semi was outsized earnings-gap risk
+INVEST_FRACTION = 0.98     # cash buffer; never lever (scaled down by risk overlays)
 CONF_LABEL = "P(beats cross-sectional median next month)"
+
+# --- Risk overlays (crash protection) ----------------------------------------
+# Time-series-momentum regime gate (Faber/Moskowitz): when SPY month-end closes
+# below its 10-month SMA, scale gross exposure down. Long-only momentum's worst
+# events (2008-09) happen below this line.
+REGIME_SMA_MONTHS = 10
+REGIME_OFF_EXPOSURE = 0.5  # exposure multiplier when the gate is OFF (risk-off)
+# Portfolio volatility targeting (Moreira-Muir): scale exposure so trailing
+# realized vol ~ TARGET_VOL. Never levers above 1.0.
+TARGET_VOL = 0.18          # annualized; exposure = min(1, TARGET_VOL / realized)
+VOL_LOOKBACK_MONTHS = 6    # trailing window for realized portfolio vol
+
+# --- Diversification limits ---------------------------------------------------
+MAX_NAMES_PER_SECTOR = 6   # a 15-name book may not be one sector in disguise
+MAX_SECTOR_WEIGHT = 0.40   # aggregate weight cap per sector after sizing
+
+# --- Turnover control ----------------------------------------------------------
+# Rank banding (Novy-Marx-Velikov): incumbents stay while ranked <= BAND_EXIT;
+# new names only enter at rank <= N_STOCKS_MAX. Cuts churn from rank noise.
+RANK_BAND_EXIT = 30
+# Sector hysteresis: a sector enters the book at rank <= N_SECTORS but only
+# exits when it falls below SECTOR_EXIT_RANK (rank-3/4 flip no longer swaps
+# an entire sector's names).
+SECTOR_EXIT_RANK = 5
+
+# --- Live kill switches --------------------------------------------------------
+MAX_LIVE_DRAWDOWN = 0.20   # equity < HWM*(1-this) => write STOP + alert
+MAX_CYCLE_TURNOVER = 0.40  # planned turnover above this, without a new signal
+                           # month, => dry-run + alert (bad-data circuit breaker)
+MAX_ORDER_ERROR_STREAK = 3 # consecutive cycles with order errors => STOP
 
 # --- Live execution (Alpaca PAPER only) -------------------------------------
 REBALANCE_BAND = 0.03      # only trade a name if target vs current weight

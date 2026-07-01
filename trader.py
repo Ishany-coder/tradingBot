@@ -66,6 +66,10 @@ def plan_orders(book: dict, equity: float, positions: dict) -> list[dict]:
 
     Only emits an order when |target$ - current$| exceeds the rebalance band
     (anti-churn). Names held but no longer in the book are fully liquidated.
+
+    Crash guard: buy-side REBALANCE orders are suppressed for names already held
+    that are down more than 10% (unrealized) — the intra-cycle loop must not
+    mechanically average into a single-name crash. Sells are never suppressed.
     """
     invest = equity * C.INVEST_FRACTION
     targets = {t: book[t]["weight"] * invest for t in book}
@@ -86,6 +90,11 @@ def plan_orders(book: dict, equity: float, positions: dict) -> list[dict]:
         delta = tgt - cur
         if abs(delta) < band:
             continue  # within band -> leave it alone
+        if (delta > 0 and t in positions
+                and positions[t].get("unrealized_plpc", 0.0) < -0.10):
+            print(f"  [crash-guard] {t} down "
+                  f"{positions[t]['unrealized_plpc']:.0%} — not buying the dip.")
+            continue
         orders.append({
             "symbol": t,
             "side": "buy" if delta > 0 else "sell",
@@ -98,12 +107,72 @@ def plan_orders(book: dict, equity: float, positions: dict) -> list[dict]:
     return orders
 
 
+_BOOK_CACHE = C.STATE_DIR / "current_book.json"
+_HWM_FILE = C.STATE_DIR / "hwm.json"
+_ERR_STREAK = C.STATE_DIR / "err_streak"
+
+
 def _halted() -> str | None:
     if C.STOP_FILE.exists():
         return f"STOP file present ({C.STOP_FILE}); trading halted."
     if not C.ENABLED:
         return "config.ENABLED is False; trading halted."
     return None
+
+
+def _check_drawdown_kill(equity: float) -> str | None:
+    """High-water-mark drawdown kill switch: unattended systems need an
+    automated stop, not just a manual STOP file. Writes STOP + alerts."""
+    hwm = equity
+    if _HWM_FILE.exists():
+        try:
+            hwm = max(float(json.loads(_HWM_FILE.read_text())["hwm"]), equity)
+        except Exception:  # noqa: BLE001
+            pass
+    _HWM_FILE.write_text(json.dumps({"hwm": hwm}))
+    if equity < hwm * (1.0 - C.MAX_LIVE_DRAWDOWN):
+        reason = (f"equity ${equity:,.0f} is {1 - equity / hwm:.0%} below "
+                  f"high-water-mark ${hwm:,.0f} (limit {C.MAX_LIVE_DRAWDOWN:.0%})")
+        C.STOP_FILE.write_text(reason)
+        return reason
+    return None
+
+
+def _order_error_streak(had_errors: bool) -> int:
+    """Track consecutive cycles with order errors; STOP after the limit."""
+    streak = 0
+    if _ERR_STREAK.exists():
+        try:
+            streak = int(_ERR_STREAK.read_text().strip() or 0)
+        except ValueError:
+            streak = 0
+    streak = streak + 1 if had_errors else 0
+    _ERR_STREAK.write_text(str(streak))
+    return streak
+
+
+def _frozen_book(signal_month: str):
+    """Return the stored (book, ic) if it belongs to ``signal_month``, else None.
+
+    The signal is a MONTHLY decision: intra-month cycles must trade toward the
+    same frozen target, not re-derive a drifting one from partial-month data
+    (and they skip the ~20-min model rebuild entirely).
+    """
+    if not _BOOK_CACHE.exists():
+        return None
+    try:
+        rec = json.loads(_BOOK_CACHE.read_text())
+        if rec.get("month") == signal_month:
+            return rec["label"], rec["date"], rec["book"], rec.get("ic", {})
+    except Exception:  # noqa: BLE001
+        pass
+    return None
+
+
+def _store_book(label, date, book, ic, signal_month: str):
+    _BOOK_CACHE.write_text(json.dumps(
+        {"month": signal_month, "label": label, "date": str(date),
+         "book": book, "ic": ic}, default=str))
 
 
 def run(force: bool = False, force_dry: bool = False, allow_closed: bool = False,
@@ -115,6 +184,8 @@ def run(force: bool = False, force_dry: bool = False, allow_closed: bool = False
     method = method or C.LIVE_METHOD
     variant = variant or C.STRATEGY_VARIANT
 
+    import alerts
+
     halt = _halted()
     if halt:
         print(f"[trader] {halt}")
@@ -122,19 +193,61 @@ def run(force: bool = False, force_dry: bool = False, allow_closed: bool = False
 
     broker = PaperBroker()  # raises unless paper endpoint + creds present
 
-    label, date, book, ic = build_targets(force=force, universe=universe,
-                                           method=method, variant=variant)
+    # Automated kill switch: drawdown vs high-water mark (before anything else).
+    equity = broker.get_equity()
+    kill = _check_drawdown_kill(equity)
+    if kill:
+        print(f"[trader] KILL: {kill}")
+        alerts.notify("Trader HALTED (drawdown)", kill)
+        return {"time": now, "halted": kill, "orders": []}
+
+    # Monthly signal, frozen intra-month: only rebuild when the month changes.
+    signal_month = dt.date.today().strftime("%Y-%m")
+    frozen = None if force else _frozen_book(signal_month)
+    new_signal = frozen is None
+    if frozen:
+        label, date, book, ic = frozen
+        print(f"[trader] using frozen {signal_month} book "
+              f"({len(book)} names) — drift correction only.")
+    else:
+        label, date, book, ic = build_targets(force=force, universe=universe,
+                                              method=method, variant=variant)
+        if book:
+            _store_book(label, date, book, ic, signal_month)
     if not book:
         print("[trader] no target book (data too thin); nothing to do.")
+        alerts.notify("Trader: empty book", "No target book this cycle "
+                      "(data too thin / breadth floor). Holding prior positions.")
         return {"time": now, "note": "empty book", "orders": []}
 
-    equity = broker.get_equity()
+    # Cancel stale open orders so the diff below is against reality, and a
+    # crash mid-cycle can't leave orphans that double-fill later.
+    market_open = broker.is_market_open()
+    if market_open and not force_dry:
+        try:
+            n_cancelled = broker.cancel_all_orders()
+            if n_cancelled:
+                print(f"[trader] cancelled {n_cancelled} stale open orders.")
+        except Exception as exc:  # noqa: BLE001
+            print(f"[trader] cancel-open-orders failed (continuing): {exc}")
+
     positions = broker.get_positions()
     orders = plan_orders(book, equity, positions)
 
+    # Turnover circuit breaker: a large planned reshuffle WITHOUT a new monthly
+    # signal means bad data or drift gone wrong — don't trade it unattended.
+    planned_turnover = sum(o["dollars"] for o in orders) / equity if equity else 0.0
+    breaker = (planned_turnover > C.MAX_CYCLE_TURNOVER and not new_signal)
+    if breaker:
+        msg = (f"planned turnover {planned_turnover:.0%} > "
+               f"{C.MAX_CYCLE_TURNOVER:.0%} without a new monthly signal — "
+               "forcing dry-run (bad-data guard).")
+        print(f"[trader] BREAKER: {msg}")
+        alerts.notify("Trader circuit breaker", msg)
+        force_dry = True
+
     # DRY-RUN ONCE: first ever run sends nothing, then arms live trading.
     first_run = not C.DRYRUN_FLAG.exists()
-    market_open = broker.is_market_open()
     dry = force_dry or first_run or not (market_open or allow_closed)
     reason = ("forced dry-run" if force_dry else
               "first run (dry-run once)" if first_run else
@@ -167,7 +280,11 @@ def run(force: bool = False, force_dry: bool = False, allow_closed: bool = False
             if o["action"] == "liquidate":
                 res = broker.liquidate(o["symbol"], dry_run=dry)
             else:
-                res = broker.submit_notional(o["symbol"], o["dollars"], o["side"], dry_run=dry)
+                # Deterministic id: a retry of the same cycle/symbol/side is
+                # rejected by Alpaca as a duplicate instead of double-filling.
+                coid = f"tb-{now[:13]}-{o['symbol']}-{o['side']}"
+                res = broker.submit_notional(o["symbol"], o["dollars"], o["side"],
+                                             dry_run=dry, client_order_id=coid)
             placed.append({**o, "result": "dry-run" if dry else res.get("id", "ok")})
         except Exception as exc:  # noqa: BLE001 - keep going on a single bad order
             print(f"    ! order failed for {o['symbol']}: {exc}")
@@ -184,12 +301,32 @@ def run(force: bool = False, force_dry: bool = False, allow_closed: bool = False
         p["dollars"] for p in placed
         if p.get("result") not in ("dry-run", None)
         and not str(p.get("result", "")).startswith("error"))
+    # Alerting: errors first (streak-based STOP), then a fill summary; then the
+    # dead-man heartbeat so an external monitor notices if the loop dies.
+    errors = [p for p in placed if str(p.get("result", "")).startswith("error")]
+    streak = _order_error_streak(bool(errors))
+    if errors:
+        alerts.notify(f"Trader: {len(errors)} order error(s)",
+                      "; ".join(f"{p['symbol']}: {p['result']}" for p in errors[:5]))
+        if streak >= C.MAX_ORDER_ERROR_STREAK:
+            reason_stop = (f"{streak} consecutive cycles with order errors — "
+                           "auto-halting.")
+            C.STOP_FILE.write_text(reason_stop)
+            alerts.notify("Trader HALTED (error streak)", reason_stop)
+    elif not dry and traded_notional > 0:
+        alerts.notify("Trader: orders placed",
+                      f"{len(placed) - len(errors)} orders, "
+                      f"${traded_notional:,.0f} notional; equity ${equity:,.0f}.")
+    alerts.heartbeat()
+
     summary = {"time": now, "universe": universe, "method": method,
                "variant": label, "signal_date": str(date), "equity": equity,
                "market_open": market_open, "mode": reason,
+               "new_signal": new_signal,
                "ic_mean": ic.get("mean_ic"), "ic_ir": ic.get("ic_ir"),
                "n_names": len(book),
                "gross_exposure": sum(b["weight"] for b in book.values()),
+               "planned_turnover": planned_turnover,
                "traded_notional": traded_notional,
                "turnover_pct": (traded_notional / equity) if equity else None,
                "book": book, "orders": placed}
