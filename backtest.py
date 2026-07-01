@@ -13,10 +13,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import datetime as dt
+import numpy as np
 import pandas as pd
 
 import config as C
 import data
+import edgar
 import features as F
 import metrics
 import model
@@ -24,9 +26,17 @@ import montecarlo
 import sizing
 import universe as U
 
-# Feature sets for the two model variants.
-PRICE_FEATURES = ["mom_12_1", "mom_6", "mom_3", "vol"]
-ALL_FEATURES = PRICE_FEATURES + ["roe", "de", "margin"]
+# Base features, cross-sectionally z-scored per month (``_z`` columns built in
+# build_samples). Z-scoring puts every name on the same per-month scale, which
+# is what a cross-sectional ranker should compare — raw momentum/fundamentals
+# live on wildly different scales and drift over time.
+# etf_rs = "ETFs that are working" — each stock's beta to the leading-momentum
+# sector-ETF basket (price-based, point-in-time). In both feature sets.
+PRICE_FEATURES = ["mom_12_1_z", "mom_6_z", "mom_3_z", "vol_z", "etf_rs_z"]
+ALL_FEATURES = PRICE_FEATURES + ["roe_z", "de_z", "margin_z"]
+
+# Raw columns that get a per-month cross-sectional z-score sibling (``_z``).
+_Z_BASE = ["mom_12_1", "mom_6", "mom_3", "vol", "etf_rs", "roe", "de", "margin"]
 
 
 @dataclass
@@ -41,6 +51,7 @@ class BacktestResult:
     summary: dict
     mc: dict
     drop_log: dict = field(default_factory=dict)   # {date: n_excluded} (B only)
+    ic: dict = field(default_factory=dict)         # signal quality (see metrics)
 
 
 @dataclass
@@ -60,12 +71,16 @@ class Bundle:
 # --- sample matrix ----------------------------------------------------------
 
 def build_samples(force: bool = False, universe_override: dict | None = None,
-                  years: int | None = None):
+                  years: int | None = None, fundamentals_source: str = "yfinance"):
     """Assemble the (date, ticker) sample matrix and supporting panels.
 
     universe_override : use this {etf: [tickers]} map instead of the live
-        current-holdings universe (e.g. a point-in-time 2020 snapshot).
+        current-holdings universe (e.g. a point-in-time 2020 snapshot, or the
+        S&P 500 point-in-time universe).
     years : history window in years (defaults to config.BACKTEST_YEARS).
+    fundamentals_source : "yfinance" (default) or "edgar" — the latter uses SEC
+        EDGAR for true point-in-time fundamentals (filing-dated, no synthetic
+        lag); see edgar.py.
 
     Returns (samples, mprices, sector_mom, fwd, universe, stock_sector).
     """
@@ -84,9 +99,16 @@ def build_samples(force: bool = False, universe_override: dict | None = None,
     vol = F.volatility_panel(daily, mprices.index)
     fwd = F.forward_return_panel(mprices)
     sector_mom = F.sector_momentum(mprices, list(C.SECTOR_ETFS))
+    # "ETFs that are working": beta of each stock to the leading-ETF basket.
+    _basket = F.leaders_basket_returns(daily, sector_mom)
+    etf_rs = F.etf_rs_beta_panel(daily, _basket, mprices.index)
 
-    # Point-in-time fundamentals timeline per stock (built once).
-    timelines = {s: F.build_fundamentals_timeline(s, force=force) for s in stocks}
+    # Point-in-time fundamentals timeline per stock (built once). EDGAR gives
+    # filing-dated, multi-year fundamentals; yfinance is the thin fallback.
+    if fundamentals_source == "edgar":
+        timelines = {s: edgar.build_timeline(s, force=force) for s in stocks}
+    else:
+        timelines = {s: F.build_fundamentals_timeline(s, force=force) for s in stocks}
 
     # Long-format sample matrix over (month, stock).
     records = []
@@ -102,6 +124,7 @@ def build_samples(force: bool = False, universe_override: dict | None = None,
                 "mom_6": _at(moms["mom_6"], date, stk),
                 "mom_3": _at(moms["mom_3"], date, stk),
                 "vol": _at(vol, date, stk),
+                "etf_rs": _at(etf_rs, date, stk),
                 "target": _at(fwd, date, stk),
                 "roe": float("nan"),
                 "de": float("nan"),
@@ -117,6 +140,18 @@ def build_samples(force: bool = False, universe_override: dict | None = None,
             records.append(row)
 
     samples = pd.DataFrame(records).set_index(["date", "ticker"]).sort_index()
+
+    # Cross-sectional z-score of each base feature within its month: puts all
+    # names on a comparable per-month scale for the model. NaN base => NaN z
+    # (those rows are dropped by the model's dropna, same as before).
+    for col in _Z_BASE:
+        g = samples.groupby(level=0)[col]
+        z = (samples[col] - g.transform("mean")) / g.transform("std")
+        # Clip to ±4 SD so a single outlier (e.g. a tiny-equity ROE blow-up or a
+        # momentum spike) can't dominate the scale-sensitive MLP. Tree models are
+        # monotone-invariant within the clip, so this only helps.
+        samples[col + "_z"] = z.replace([np.inf, -np.inf], np.nan).clip(-4, 4)
+
     return samples, mprices, sector_mom, fwd, uni, stock_sector
 
 
@@ -135,16 +170,24 @@ def _top_sectors(sector_mom: pd.DataFrame, date) -> list[str]:
     return list(row.sort_values(ascending=False).index)
 
 
-def _select(date, preds_at_t, samples, stock_sector, top_sectors, use_screen):
+def _select(date, preds_at_t, samples, stock_sector, top_sectors, use_screen,
+            members=None):
     """Stage 2: select the book (by edge) and size it (by conviction).
 
     ``preds_at_t`` is a DataFrame indexed by ticker with ``pred`` (edge) and
     ``confidence`` columns. Selection ranks by ``pred``; sizing uses
     confidence / volatility. Returns (weights dict, n_dropped_by_screen).
+
+    ``members`` (set or None): if given, only names that were index members at
+    ``date`` are eligible — point-in-time membership gating that removes
+    survivorship bias (a name added to the index later can't be picked earlier).
     """
     chosen = set(top_sectors[: C.N_SECTORS])
-    # Candidates = predicted names whose owning sector is in the top 3.
-    cands = [t for t in preds_at_t.index if stock_sector.get(t) in chosen]
+    # Candidates = predicted names whose owning sector is in the top 3 (and, if
+    # membership is enforced, that were actually in the index this month).
+    cands = [t for t in preds_at_t.index
+             if stock_sector.get(t) in chosen
+             and (members is None or t in members)]
     dropped = 0
 
     if use_screen:
@@ -195,15 +238,18 @@ def _at_scalar(samples, date, ticker, col):
 
 
 def run_variant(label, samples, feature_cols, sector_mom, fwd, stock_sector,
-                use_screen, params=None, with_mc=True) -> BacktestResult:
+                use_screen, method="gbm", seed=None, with_mc=True,
+                membership=None) -> BacktestResult:
     """Walk-forward predict, then simulate monthly rebalancing.
 
-    params  : GBM hyper-parameters override (e.g. a different ``random_state``
-        per call to re-train the same data — see ``retrain.py``).
+    method  : model method "gbm" | "lambdarank" | "mlp" (see model.py).
+    seed    : override the model ``random_state`` (re-train robustness loop).
     with_mc : run the Monte-Carlo drawdown reshuffle (``MC_RUNS`` permutations).
         Set False when calling this in a tight loop to skip that cost.
+    membership : optional object with ``.asof(date) -> set`` for point-in-time
+        index-membership gating in selection (S&P 500 PIT universe).
     """
-    preds = model.walk_forward_predict(samples, feature_cols, params=params)
+    preds = model.walk_forward_predict(samples, feature_cols, method=method, seed=seed)
     if preds.empty:
         # Data too thin to ever reach MIN_TRAIN_MONTHS (typically Backtest B
         # when yfinance fundamentals don't cover enough history). Return an
@@ -224,8 +270,9 @@ def run_variant(label, samples, feature_cols, sector_mom, fwd, stock_sector,
         sector_hist[t] = top_sectors[: C.N_SECTORS]
 
         preds_at_t = preds.xs(t, level=0)  # DataFrame: pred, confidence
+        members = membership.asof(t) if membership is not None else None
         weights, dropped = _select(t, preds_at_t, samples, stock_sector,
-                                   top_sectors, use_screen)
+                                   top_sectors, use_screen, members=members)
         if use_screen:
             drop_log[t] = dropped
         if not weights:
@@ -254,10 +301,15 @@ def run_variant(label, samples, feature_cols, sector_mom, fwd, stock_sector,
         monthly_ret[t] = gross - cost
         prev_w = weights
 
+    # Raw signal quality (rank IC of predictions vs realised returns), computed
+    # over every scored name — independent of selection/sizing/costs.
+    ic = metrics.information_coefficient(preds, fwd)
+
     mr = pd.Series(monthly_ret).sort_index()
     if mr.empty:
         print(f"[backtest] {label}: no realised monthly returns; empty result.")
-        return _empty_result(label, holdings_hist, pred_hist, conf_hist, sector_hist, drop_log)
+        return _empty_result(label, holdings_hist, pred_hist, conf_hist,
+                             sector_hist, drop_log, ic)
     summary = metrics.summarize(mr)
     mc = (montecarlo.reshuffle_drawdowns(mr) if with_mc
           else {"p50_drawdown": float("nan"), "p95_drawdown": float("nan")})
@@ -273,6 +325,7 @@ def run_variant(label, samples, feature_cols, sector_mom, fwd, stock_sector,
         summary=summary,
         mc=mc,
         drop_log=drop_log,
+        ic=ic,
     )
 
 
@@ -294,7 +347,7 @@ def current_book(result: BacktestResult):
 
 
 def _empty_result(label, holdings=None, preds=None, confs=None, sectors=None,
-                  drops=None) -> BacktestResult:
+                  drops=None, ic=None) -> BacktestResult:
     """A result carrying no realised returns (variant was data-starved).
 
     Any holdings/predictions discovered before returns ran out are kept so the
@@ -310,24 +363,40 @@ def _empty_result(label, holdings=None, preds=None, confs=None, sectors=None,
         summary=nan_summary,
         mc={"p50_drawdown": float("nan"), "p95_drawdown": float("nan")},
         drop_log=drops or {},
+        ic=ic or {},
     )
 
 
 def run_all(force: bool = False, universe_override: dict | None = None,
-            years: int | None = None) -> Bundle:
-    """Run both variants and bundle results for the dashboard.
+            years: int | None = None, method: str = "gbm",
+            membership=None, fundamentals_source: str = "yfinance",
+            variant: str = "both") -> Bundle:
+    """Run the strategy and bundle results for the dashboard.
 
     Pass universe_override + years to backtest a point-in-time universe (e.g.
-    the 2020 holdings over a 9-year window). Defaults reproduce the live
-    current-holdings backtest.
+    the 2020 holdings over a 9-year window, or the S&P 500 PIT universe).
+    method selects the model (gbm|lambdarank|mlp); membership enforces
+    point-in-time index membership; fundamentals_source picks yfinance|edgar.
+    variant : "both" | "A" | "B" — build only the requested variant(s). Building
+        one (the single live model) skips the other walk-forward, ~halving time.
+    Defaults reproduce the live current-holdings GBM backtest.
     """
     samples, mprices, sector_mom, fwd, uni, stock_sector = build_samples(
-        force=force, universe_override=universe_override, years=years)
+        force=force, universe_override=universe_override, years=years,
+        fundamentals_source=fundamentals_source)
 
-    result_a = run_variant("A: momentum-only", samples, PRICE_FEATURES,
-                           sector_mom, fwd, stock_sector, use_screen=False)
-    result_b = run_variant("B: momentum + quality", samples, ALL_FEATURES,
-                           sector_mom, fwd, stock_sector, use_screen=True)
+    if variant in ("both", "A"):
+        result_a = run_variant("A: momentum-only", samples, PRICE_FEATURES,
+                               sector_mom, fwd, stock_sector, use_screen=False,
+                               method=method, membership=membership)
+    else:
+        result_a = _empty_result("A: momentum-only")
+    if variant in ("both", "B"):
+        result_b = run_variant("B: momentum + quality", samples, ALL_FEATURES,
+                               sector_mom, fwd, stock_sector, use_screen=True,
+                               method=method, membership=membership)
+    else:
+        result_b = _empty_result("B: momentum + quality")
 
     # Full SPY buy-and-hold monthly (forward) return series over ALL months.
     # Consumers reindex to whichever variant's grid they display, so a short

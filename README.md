@@ -1,187 +1,286 @@
 # Momentum Equity Strategy + Dashboard + Auto-Trader
 
-Two-stage momentum equity strategy (sector momentum → stock selection) with a
-walk-forward machine-learning prediction model, conviction-based position
-sizing, a realistic backtest, a Streamlit dashboard, and an **automated
-Alpaca paper trader**.
+Two-stage momentum equity strategy (sector momentum → stock selection) driven by
+an **ensemble machine-learning model**, walk-forward trained with strict
+no-lookahead discipline, on a **survivorship-bias-free S&P 500 universe** with
+**free point-in-time SEC EDGAR fundamentals**. Includes conviction-based sizing,
+a realistic backtest, a Streamlit dashboard, and an **automated Alpaca paper
+trader**.
 
 > **Paper account only.** The broker layer hard-refuses any endpoint that is not
 > `paper-api.alpaca.markets`. No real money is ever at risk. This is a research /
-> educational tool, not investment advice.
+> educational tool, **not investment advice**. Backtested outperformance is not a
+> promise of future results — see the honesty notes throughout.
 
 ## Quick start
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements.txt          # includes lightgbm; macOS: brew install libomp
 streamlit run app.py
 ```
 
-First launch downloads price + fundamentals data from yfinance and caches it to
-`data/cache/` (parquet/pickle). Subsequent launches are fast. Use the sidebar
-**↻ Refresh** button to re-download.
+In the dashboard: pick the **S&P 500 point-in-time** universe (the default and
+the only honest test — see *Universes* below) and press **▶ Run backtest / load
+data**. First run downloads + caches data (~15–20 min for the full S&P 500 build,
+then cached); later runs reuse the cache.
 
-## Strategy
+---
 
-**Stage 1 — sector momentum.** Rank the 11 SPDR sector ETFs by *12-1 momentum*
-(return from t-12mo to t-1mo, skipping the most recent month). Hold the top 3.
+## How the model works
 
-**Stage 2 — stock selection.** Within the chosen sectors:
-- (Backtest B) **quality screen**: positive TTM net income, ROE > 0, and
-  debt-to-equity below the sector median.
-- rank survivors by the model's predicted forward 1-month return,
-- buy the top 10–15, **equal weight**, rebalanced **monthly**.
+The strategy makes one decision per month: **which ~15 stocks to hold, and how
+much of each.** It does this in two stages.
 
-## Prediction model
+### Stage 1 — sector momentum
+Rank the 11 SPDR sector ETFs by **12-1 momentum** (return from t-12 months to
+t-1 month, skipping the most recent month to avoid short-term reversal). Keep the
+top `N_SECTORS` (default 3). Only stocks in those leading sectors are eligible.
 
-`sklearn.GradientBoostingRegressor` predicts each stock's forward 1-month
-return from: 12-1 / 6-month / 3-month momentum, ROE, debt-to-equity, profit
-margin, and 60-day volatility.
+### Stage 2 — model-ranked stock selection
+Within the leading sectors, an ML model **ranks** every eligible stock by its
+expected forward 1-month performance. The top `N_STOCKS_MAX` (default 15) are
+bought, **conviction-weighted** (see *Position sizing*), and rebalanced monthly.
 
-**Walk-forward (expanding window) — no lookahead.** To decide the book held over
-month `t → t+1`, the model trains only on samples whose target return is already
-realised by `t` (i.e. months strictly before `t`). It never sees a return that
-unfolds at or after the decision date. The loop is heavily commented in
-`model.py`; this is the single most important correctness property.
+### The model = an ensemble of three models
 
-The predicted score is an **estimate, not a guarantee**, and is labelled that
-way in the UI.
+`config.LIVE_METHOD = "ensemble"`. Each month the pipeline runs **three different
+learners** and blends them (this is the "run multiple models and combine them"
+design). Blending decorrelated models is more robust than trusting any one:
 
-## Backtest A vs B
-
-| | A — baseline | B — full |
+| Sub-model | What it is | Role |
 |---|---|---|
-| Quality screen | no | yes |
-| Model features | price-only (momentum + vol) | all seven |
-| History | long (price only) | limited by fundamentals |
+| **GBM** | `sklearn.GradientBoostingRegressor` — predicts forward 1-mo return | pointwise edge |
+| **lambdarank** | `lightgbm.LGBMRanker` (learning-to-rank) — optimises the monthly *ranking* directly | ordinal ranker |
+| **NN** | seed-ensembled `sklearn.MLPRegressor` (5 nets averaged, `MLP_SEEDS`) | neural net, different inductive bias |
 
-They are compared head-to-head (CAGR, max drawdown, Sharpe, Monte Carlo P95
-drawdown) so you can see whether the quality screen actually earns its keep.
+**How they combine** (`model._fit_ensemble`): each sub-model scores every stock
+for the month; each score is converted to a **cross-sectional rank**; the three
+ranks are **averaged**. Selection uses that blended rank. Rank-averaging (not
+score-averaging) keeps any one model from dominating just because its raw scores
+are on a bigger scale. Confidence (for sizing) is the mean of the three models'
+confidence heads.
 
-> **Caveat:** A also lacks the fundamental *features*, so this is a bundle
-> comparison, not a perfectly clean screen-only ablation — the best the
-> available data allows.
+### Features (inputs)
+Each `(month, stock)` row is described by, all **cross-sectionally z-scored within
+the month** (and clipped to ±4 SD so one outlier can't dominate):
 
-## Backtest realism
+- **Momentum**: 12-1, 6-month, 3-month returns
+- **Volatility**: 60-day daily-return std
+- **ETF relative strength** (`etf_rs`): the stock's trailing-120d beta to a basket
+  of the *currently leading* sector ETFs — i.e. "is this name riding the ETFs
+  that are working?" (pure price data, no look-ahead)
+- **Fundamentals** (variant B only): ROE, debt-to-equity, profit margin, from SEC
+  EDGAR point-in-time filings
 
-- Transaction cost **0.05% per trade** charged on turnover at every rebalance.
-- **No lookahead** anywhere — only data available at the decision date.
-- Reports total return, CAGR, max drawdown, Sharpe, and the equity curve vs
-  buy-and-hold SPY.
-- **Monte Carlo**: 1000 reshuffles of the monthly returns → P50 and P95
-  drawdown (the single historical path understates tail risk).
-- If Sharpe > 2.5, a **warning** is printed/shown — suspiciously high usually
-  means overfitting or a lookahead bug, not a real edge.
+### Variants A and B
+- **A — momentum-only** (deployed): price + ETF-RS features, no fundamental screen.
+- **B — momentum + quality**: adds a fundamental screen (positive TTM net income,
+  ROE > 0, debt/equity below sector median) + fundamental features.
 
-## Known data limitations (read this)
+On the S&P 500 universe, **A** wins (the quality screen drops too many momentum
+leaders); `config.STRATEGY_VARIANT = "A"`.
 
-- **ETF constituents:** yfinance only exposes the *current* top ~10 holdings per
-  ETF, not historical membership → **survivorship bias** in the universe.
-- **Fundamentals history is thin.** yfinance now serves only ~5 quarters of
-  quarterly statements, so the backtest merges **annual** statements (~4 years)
-  for the backbone with **quarterly** for recency. Each report is lagged by
-  `FUND_LAG_QUARTERS` (default 2) quarters to approximate filing delay. Stocks
-  with missing fundamentals at a decision date are **excluded** that month
-  (never forward-filled or guessed). If a large fraction drops out, the app
-  warns that the data is too thin to trust the quality screen — a real
-  point-in-time source (Financial Modeling Prep, Sharadar) would be needed for a
-  credible Backtest B.
-- The **live current-holdings view** uses current fundamentals freely (no
-  lookahead in the present); the point-in-time lag applies only to the backtest.
+---
+
+## How the model is trained
+
+**Walk-forward, expanding window, retrained from scratch every month.** There is
+no single saved "trained model" — each monthly decision trains fresh on all
+history available at that point. This is the auditable core (`model.py`,
+heavily commented).
+
+### The no-lookahead contract
+A training sample is one `(month s, stock)` row: its **features** come from data
+known at month-end `s`; its **target** is the return `s → s+1`, only realised at
+`s+1`. To predict month `t`, the model may train **only on rows with date < t**
+(so every training target is already realised before `t`). It never sees a return
+at or after the decision date. The classifier's "winner" label likewise compares
+a sample to the median of *its own past month*, so no future information leaks.
+
+### Per-month training loop
+For each decision month `t` (from `MIN_TRAIN_MONTHS`, default 24, onward):
+1. **Slice** training rows = all `(s, stock)` with `s < t`.
+2. **Fit** all three sub-models on that slice:
+   - GBM regressor on realised forward returns;
+   - lambdarank on per-month integer relevance grades (`RANK_GRADES` quantile
+     buckets of the target), grouped by month;
+   - the NN as **5 independently-seeded MLPs**, each behind a `StandardScaler`
+     refit on the training slice only (no scaling leakage) — their predictions
+     averaged (single-seed MLPs are too noisy to use alone);
+   - plus a confidence head per model = P(stock beats the cross-sectional median
+     next month).
+3. **Predict** the rows at month `t`, rank-blend the three, and that is the book
+   for `t → t+1`.
+
+Because every month refits on a longer window, the model "continuously trains" as
+new data arrives. The per-month fits are independent, so they run in parallel
+across CPU cores (`joblib`).
+
+### Universes (what data it trains on)
+- **S&P 500 point-in-time** (deployed): real historical index membership from a
+  free MIT-licensed dataset (`sp500.py`), so each month only trades names that
+  were *actually* in the index then — **no survivorship bias**. ~9-year window
+  (`years=9`) so the first prediction lands ~2019 and 2020→now is fully covered.
+- **Current holdings** / **2020 point-in-time**: two narrow ~30-name ETF-holding
+  sets. **Do not judge the model on these** — they're a lagging slice of the
+  index (2020 loses to the S&P; "current holdings" is survivorship-*inflated*).
+  Kept only for comparison.
+
+### Point-in-time fundamentals (SEC EDGAR)
+`edgar.py` pulls each company's fundamentals from the free SEC XBRL `companyfacts`
+API keyed on the **actual filing date** (`filed`), so a value is only usable once
+its filing became public — true point-in-time, no synthetic lag. Uses annual
+(10-K) net income & revenue with the latest quarterly balance-sheet equity/debt;
+de-dupes restatements by latest filing; requires equity > 0. yfinance is the
+fallback source on the narrow universes.
+
+---
 
 ## Position sizing — conviction, not equal weight
 
-Books are **not** equal weight. Selection picks *which* names (top-N by predicted
-return = edge); sizing picks *how much* capital each gets:
+Selection picks *which* names (top-N by blended rank); sizing picks *how much*:
 
 ```
 weight_i  ∝  confidence_i / volatility_i      # high conviction + low vol => more $
 ```
 
-capped at 25% per name, long-only, normalised to 100%. `confidence` is a second
-model head — a `GradientBoostingClassifier` predicting P(the stock beats the
-cross-sectional median next month), run through the same walk-forward loop. Both
-the predicted return and the confidence are shown per holding in the dashboard.
+capped at `MAX_WEIGHT` (25%) per name, long-only, normalised to 100%.
+`confidence` is the ensemble's blended P(beats cross-sectional median next month).
+
+---
+
+## How good is it? (measured, with caveats)
+
+Judged by a **paired block-bootstrap win-rate** vs SPY: resample the monthly
+return history many times, count the fraction of resampled paths where the
+strategy's total return beats buy-and-hold SPY. Full model ranking is in
+[`MODELS.md`](MODELS.md). Deployed ensemble, S&P 500 universe, 2020→now:
+
+| | win-rate 2020→ | recent 2023→ (out-of-sample) | edge | CAGR | Sharpe |
+|---|---|---|---|---|---|
+| **Ensemble (deployed)** | **79%** | **66%** | +312% | +31% | 1.01 |
+| lambdarank alone (best single) | 88% | 73% | +310% | +31% | 1.04 |
+
+> **Read this honestly.** The **information coefficient (IC ≈ 0.012)** — the rank
+> correlation of predictions with realised returns — is *tiny*. That means the
+> high win-rate is driven by the large compounded magnitude of a concentrated
+> momentum book during the 2020–2024 tech bull, **not** by reliable per-name
+> stock-picking skill. The recent-slice number is the best out-of-sample signal,
+> but the whole sample is one bull regime. The **live paper forward curve** (the
+> 📡 dashboard panel) is the only test that can't be curve-fit. A backtest win-rate
+> is not a promise of beating the S&P going forward.
+
+The dashboard prints a warning whenever IC is near zero or Sharpe > 2.5
+(suspiciously high usually = overfitting / a lookahead bug, not a real edge).
+
+---
+
+## Backtest realism
+
+- Transaction cost **0.05% per trade** charged on turnover at every rebalance.
+- **No lookahead** anywhere — only data available at the decision date.
+- Reports total return, CAGR, max drawdown, Sharpe, Sortino, Calmar, monthly win
+  rate, average names, turnover, IC, and the equity curve vs buy-and-hold SPY.
+- **Monte Carlo**: `MC_RUNS` (1000) reshuffles of the monthly returns → P50/P95
+  drawdown (one historical path understates tail risk).
+- **Robustness / re-train buttons**: bootstrap the win-rate, or re-fit the model
+  under many seeds, to separate a real edge from one lucky path.
+
+---
 
 ## Automated paper trading
 
-`trader.py` runs one full cycle: compute conviction targets → read live Alpaca
-equity + positions → diff to target dollars → place fractional-$ market orders
-to close the gap. `run_loop.py` repeats it every `RECOMPUTE_HOURS` (default 1).
+`trader.py` runs one cycle: build the ensemble target book → read live Alpaca
+equity + positions → diff to target dollars → place fractional-$ market orders to
+close the gap. `run_loop.py` repeats it every `RECOMPUTE_HOURS` (default 6),
+**market hours only**. Universe / model / variant default to the `config.LIVE_*`
+values so the loop trades exactly the deployed model.
 
 ```bash
 python trader.py            # one cycle (first ever run is a dry-run)
 python trader.py --dry-run  # plan only, never sends
-python run_loop.py          # unattended hourly loop
+python run_loop.py          # unattended loop (this is what runs continuously)
 ```
 
-**Dry-run once, then full auto.** The very first real cycle prints the order plan
-and sends nothing, then writes `data/state/dryrun_done.flag`. Every cycle after
-is fully automatic — zero human input on orders.
+**Dry-run once, then full auto.** The first real cycle prints the plan and sends
+nothing, then writes `data/state/dryrun_done.flag`; every cycle after is fully
+automatic.
 
-**Run unattended (macOS launchd):**
+**Run unattended (macOS launchd) — keeps trading across reboots:**
 ```bash
 cp com.tradingbot.trader.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.tradingbot.trader.plist   # starts loop, restarts on boot
+launchctl load ~/Library/LaunchAgents/com.tradingbot.trader.plist   # start + restart on boot
 launchctl unload ~/Library/LaunchAgents/com.tradingbot.trader.plist # stop
 ```
-Cron alternative (every hour, market days):
-```
-0 * * * 1-5 cd /Users/ishanghosh/projects/tradingBot && .venv/bin/python trader.py >> data/state/cron.log 2>&1
-```
+Keep the machine awake (`caffeinate -is &`) or the loop pauses on sleep.
 
 ### Safety guardrails
 - **Paper-only**: broker asserts `paper-api` in the URL or refuses to run.
-- **Cash only**, ≤ `INVEST_FRACTION` (98%) of equity invested; never levered.
-- **25% max** per position.
-- **Rebalance band**: a name only trades when its target vs current weight drifts
-  past `max(3% of equity, $10)` — stops an hourly cadence from churning a
-  monthly-horizon signal into costs. (Side effect: target positions below ~3% of
-  equity may not be entered; lower `REBALANCE_BAND` to include them.)
-- **Market-hours gate**: orders submit only when the market is open (fractional
-  orders are rejected otherwise); closed runs recompute + log only.
-- **Kill switch**: `touch data/state/STOP` halts all trading; or set
-  `ENABLED=False` in config.
-- Every cycle appends a full JSON record to `data/state/trade_log.jsonl`.
+- **Cash only**, ≤ `INVEST_FRACTION` (98%) invested; never levered. **25% max** per name.
+- **Rebalance band**: a name trades only when target vs current weight drifts past
+  `max(3% equity, $10)` — stops the loop churning a monthly signal into costs.
+- **Market-hours gate**: orders submit only when the market is open; the loop
+  also skips the (expensive) rebuild while the market is closed.
+- **Kill switch**: `touch data/state/STOP` halts all trading (delete to resume);
+  or set `ENABLED = False` in config.
+- Every cycle appends a full JSON record (equity, book, orders, IC, turnover) to
+  `data/state/trade_log.jsonl`.
 
-> **Honesty note:** trading a 1-month-forward signal hourly adds little
-> statistical edge; the rebalance band makes most hourly cycles no-ops by design,
-> giving you a live-updating view without bleeding transaction costs.
+---
 
 ## Dashboard panels
 
-1. **Current holdings** treemap — tiles sized by weight, coloured by sector,
-   labelled with ticker + weight + predicted growth.
-2. **Holdings table** — sort by position size or by predicted growth.
-3. **Equity curve** — strategy vs buy-and-hold SPY.
-4. **Metrics** — CAGR, max drawdown, Sharpe, Monte Carlo P95 drawdown.
-5. **Sector view** — the top-3 selected sectors and their momentum ranks.
-6. **Live execution** — Alpaca paper equity, current positions vs target weights,
-   trader status (dry-run/live), and the recent trade log (read-only).
+1. **Current holdings** treemap + sortable table (weight, confidence, score).
+2. **Equity curve** — strategy vs buy-and-hold SPY (backtest).
+3. **Metrics** — total return & excess vs S&P, CAGR, Sharpe, Sortino, Calmar,
+   monthly win rate, avg names, turnover, IC, Monte Carlo P95 drawdown.
+4. **📡 Live forward test** — real paper equity vs S&P since inception (the honest test).
+5. **🎲 Robustness** — bootstrap win-rate vs S&P.
+6. **🔁 Re-train test** — re-fit under many seeds to check the edge isn't luck.
+7. **Sector view** — the top-3 selected sectors and their momentum ranks.
+8. **Live execution** — Alpaca paper equity, positions vs target, trader status.
+
+---
 
 ## Configuration
 
-All tunables live in `config.py`: universe, `N_SECTORS`, book size, momentum
-lookbacks, volatility window, `FUND_LAG_QUARTERS`, `MIN_TRAIN_MONTHS`, GBM
-params, cost, backtest window, starting capital, Monte Carlo runs, and the
-Sharpe warning threshold.
+All tunables live in `config.py`. Key deployment switches:
+
+| Key | Meaning | Deployed |
+|---|---|---|
+| `LIVE_METHOD` | model: `gbm` \| `lambdarank` \| `mlp` \| `ensemble` | `ensemble` |
+| `LIVE_UNIVERSE` | `current` \| `pit2020` \| `sp500` | `sp500` |
+| `STRATEGY_VARIANT` | `A` (momentum-only) \| `B` (+ quality screen) | `A` |
+| `MLP_SEEDS` | nets averaged in the NN | 5 |
+| `RECOMPUTE_HOURS` | loop cadence (market hours only) | 6 |
+
+Plus `N_SECTORS`, book size, momentum lookbacks, cost, window, Monte Carlo runs,
+rebalance band, kill switch. **Restart the Streamlit server and the loop after
+editing `config.py`** — Python caches the module at import.
 
 ## File layout
 
 | File | Purpose |
 |---|---|
-| `config.py` | all tunables |
-| `data.py` | yfinance fetch + on-disk cache |
-| `universe.py` | sector ETFs → constituents |
-| `features.py` | momentum, volatility, point-in-time fundamentals |
-| `model.py` | walk-forward GBM regressor (edge) + classifier (confidence) |
+| `config.py` | all tunables + live-model switches |
+| `data.py` | yfinance price/fundamentals fetch + on-disk cache |
+| `sp500.py` | free point-in-time S&P 500 membership + sector map |
+| `edgar.py` | free SEC EDGAR point-in-time fundamentals |
+| `universe.py` | sector ETFs → constituents (narrow universes) |
+| `features.py` | momentum, volatility, ETF relative strength, PIT fundamentals |
+| `model.py` | walk-forward training + GBM / lambdarank / NN / **ensemble** |
 | `sizing.py` | conviction weights (confidence ÷ vol, capped) |
-| `metrics.py` | CAGR / drawdown / Sharpe |
+| `metrics.py` | CAGR / drawdown / Sharpe / Sortino / Calmar / IC / win rate |
 | `montecarlo.py` | drawdown distribution |
-| `backtest.py` | rebalance engine, runs A & B |
+| `robustness.py` | bootstrap win-rate vs S&P |
+| `retrain.py` | re-fit under many seeds (overfit check) |
+| `backtest.py` | sample matrix + rebalance engine |
+| `model_search.py` | evaluate/compare model configs (→ `MODELS.md`) |
 | `broker.py` | Alpaca paper client (paper-only guard) |
 | `trader.py` | one automated trading cycle (CLI) |
-| `run_loop.py` | unattended hourly loop |
+| `run_loop.py` | unattended market-hours loop (runs continuously) |
 | `com.tradingbot.trader.plist` | launchd template for unattended runs |
 | `app.py` | Streamlit dashboard |
+| `MODELS.md` | model-search results + honesty notes |

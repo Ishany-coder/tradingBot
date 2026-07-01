@@ -26,15 +26,39 @@ import backtest
 from broker import PaperBroker
 
 
-def build_targets(force: bool = False):
-    """Run the strategy and return (variant_label, date, target_book).
+PIT_YEARS = 9  # window for the point-in-time universes (matches the dashboard)
 
-    Prefers Backtest B (quality-screened); falls back to A if B is data-starved.
+
+def build_targets(force: bool = False, universe: str | None = None,
+                  method: str | None = None, variant: str | None = None):
+    """Run the single live strategy; return (label, date, target_book, ic).
+
+    universe / method / variant default to the deployed config (LIVE_UNIVERSE,
+    LIVE_METHOD, STRATEGY_VARIANT) so the trader and the recurring loop trade the
+    SAME model. Only the requested variant is built (the other walk-forward is
+    skipped), so a live run is ~half the time of the old dual-variant build.
     """
-    bundle = backtest.run_all(force=force)
-    res = bundle.result_b if bundle.result_b.holdings_history else bundle.result_a
+    universe = universe or C.LIVE_UNIVERSE
+    method = method or C.LIVE_METHOD
+    variant = variant or C.STRATEGY_VARIANT
+
+    if universe == "sp500":
+        import sp500
+        uni, members = sp500.build_universe(PIT_YEARS, force=force)
+        bundle = backtest.run_all(force=force, universe_override=uni,
+                                  years=PIT_YEARS, method=method, variant=variant,
+                                  membership=members, fundamentals_source="edgar")
+    elif universe == "pit2020":
+        import universe_2020
+        bundle = backtest.run_all(force=force, method=method, variant=variant,
+                                  universe_override=universe_2020.HOLDINGS_2020,
+                                  years=PIT_YEARS)
+    else:
+        bundle = backtest.run_all(force=force, method=method, variant=variant)
+
+    res = bundle.result_a if variant == "A" else bundle.result_b
     date, book = backtest.current_book(res)
-    return res.label, date, book
+    return res.label, date, book, res.ic
 
 
 def plan_orders(book: dict, equity: float, positions: dict) -> list[dict]:
@@ -82,9 +106,14 @@ def _halted() -> str | None:
     return None
 
 
-def run(force: bool = False, force_dry: bool = False, allow_closed: bool = False) -> dict:
+def run(force: bool = False, force_dry: bool = False, allow_closed: bool = False,
+        universe: str | None = None, method: str | None = None,
+        variant: str | None = None) -> dict:
     """Execute one trading cycle. Returns a summary dict (also logged)."""
     now = dt.datetime.now(dt.timezone.utc).isoformat()
+    universe = universe or C.LIVE_UNIVERSE
+    method = method or C.LIVE_METHOD
+    variant = variant or C.STRATEGY_VARIANT
 
     halt = _halted()
     if halt:
@@ -93,7 +122,8 @@ def run(force: bool = False, force_dry: bool = False, allow_closed: bool = False
 
     broker = PaperBroker()  # raises unless paper endpoint + creds present
 
-    label, date, book = build_targets(force=force)
+    label, date, book, ic = build_targets(force=force, universe=universe,
+                                           method=method, variant=variant)
     if not book:
         print("[trader] no target book (data too thin); nothing to do.")
         return {"time": now, "note": "empty book", "orders": []}
@@ -110,14 +140,22 @@ def run(force: bool = False, force_dry: bool = False, allow_closed: bool = False
               "first run (dry-run once)" if first_run else
               "market closed" if not market_open else "live")
 
+    # lambdarank's "pred" is an ordinal ranking score, not a return — label it
+    # accordingly (gbm/mlp pred IS an estimated forward return).
+    pred_is_return = method in ("gbm", "mlp")
     print(f"\n=== trader run @ {now} ===")
-    print(f"variant={label}  signal_date={date}  equity=${equity:,.2f}  "
-          f"market_open={market_open}  mode={'DRY-RUN' if dry else 'LIVE'} ({reason})")
+    print(f"universe={universe}  model={method}  variant={label}  "
+          f"signal_date={date}  equity=${equity:,.2f}  market_open={market_open}  "
+          f"mode={'DRY-RUN' if dry else 'LIVE'} ({reason})")
+    if ic.get("n_months"):
+        print(f"backtest IC (signal quality): mean {ic['mean_ic']:+.3f}  "
+              f"IR {ic['ic_ir']:.2f}  over {ic['n_months']} months")
     print(f"target book ({len(book)} names):")
     for t in sorted(book, key=lambda x: -book[x]["weight"]):
         b = book[t]
-        print(f"  {t:<6} w={b['weight']:6.2%}  conf={b['confidence']:.2f}  "
-              f"est_ret={b['pred']:+.2%}")
+        score = (f"est_ret={b['pred']:+.2%}" if pred_is_return
+                 else f"rank_score={b['pred']:+.3f}")
+        print(f"  {t:<6} w={b['weight']:6.2%}  conf={b['confidence']:.2f}  {score}")
 
     placed = []
     if not orders:
@@ -140,8 +178,20 @@ def run(force: bool = False, force_dry: bool = False, allow_closed: bool = False
         print(f"\n[trader] dry-run complete. Live trading ARMED for next run "
               f"(flag: {C.DRYRUN_FLAG}).")
 
-    summary = {"time": now, "variant": label, "signal_date": str(date),
-               "equity": equity, "market_open": market_open, "mode": reason,
+    # Count only EXECUTED notional (skip dry-run plans and failed orders) so the
+    # log reflects real activity, not what we merely planned.
+    traded_notional = sum(
+        p["dollars"] for p in placed
+        if p.get("result") not in ("dry-run", None)
+        and not str(p.get("result", "")).startswith("error"))
+    summary = {"time": now, "universe": universe, "method": method,
+               "variant": label, "signal_date": str(date), "equity": equity,
+               "market_open": market_open, "mode": reason,
+               "ic_mean": ic.get("mean_ic"), "ic_ir": ic.get("ic_ir"),
+               "n_names": len(book),
+               "gross_exposure": sum(b["weight"] for b in book.values()),
+               "traded_notional": traded_notional,
+               "turnover_pct": (traded_notional / equity) if equity else None,
                "book": book, "orders": placed}
     with open(C.TRADE_LOG, "a") as fh:
         fh.write(json.dumps(summary, default=str) + "\n")
@@ -154,8 +204,17 @@ def main():
     ap.add_argument("--dry-run", action="store_true", help="plan only, send nothing")
     ap.add_argument("--allow-closed", action="store_true",
                     help="attempt to send even when market closed (Alpaca may reject)")
+    ap.add_argument("--universe", default=None,
+                    choices=["current", "pit2020", "sp500"],
+                    help="override universe (default: config.LIVE_UNIVERSE)")
+    ap.add_argument("--model", default=None,
+                    choices=["gbm", "lambdarank", "mlp"],
+                    help="override model (default: config.LIVE_METHOD)")
+    ap.add_argument("--variant", default=None, choices=["A", "B"],
+                    help="override variant (default: config.STRATEGY_VARIANT)")
     args = ap.parse_args()
-    run(force=args.force, force_dry=args.dry_run, allow_closed=args.allow_closed)
+    run(force=args.force, force_dry=args.dry_run, allow_closed=args.allow_closed,
+        universe=args.universe, method=args.model, variant=args.variant)
 
 
 if __name__ == "__main__":

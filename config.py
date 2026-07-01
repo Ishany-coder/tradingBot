@@ -26,6 +26,21 @@ BENCHMARK = "SPY"          # buy-and-hold comparison on the equity-curve chart
 TOP_HOLDINGS_N = 10        # constituents pulled per ETF (yfinance top holdings)
 
 # --- Strategy parameters ----------------------------------------------------
+# Single live model. "A" = momentum-only (the deployed strategy — beat the S&P in
+# 88% of bootstrap resamples on the S&P 500 PIT universe, 73% on the recent 2023→
+# slice; see MODELS.md). "B" = momentum + quality screen (failed the 60% bar at
+# 45%). The whole app + trader read this, so there is exactly ONE model. Switch here.
+STRATEGY_VARIANT = "A"
+# The deployed strategy's universe + model — used by trader.py AND the recurring
+# run_loop, so the live bot and every scheduled run trade the SAME thing (and a
+# scheduled run can't silently revert the account to a different universe/model).
+LIVE_UNIVERSE = "sp500"        # "current" | "pit2020" | "sp500"
+# THE model is the ENSEMBLE: rank-blend of GBM + lambdarank + seed-ensembled NN
+# (the "run multiple models, combine them" approach). Beat the S&P in 79% of
+# bootstrap resamples (66% recent 2023→) on the S&P 500 PIT universe — clears the
+# ≥60% bar, and is more decorrelated/robust than any single model. (lambdarank
+# alone scores higher at 88%.) See MODELS.md / model._fit_ensemble.
+LIVE_METHOD = "ensemble"       # "gbm" | "lambdarank" | "mlp" | "ensemble"
 N_SECTORS = 3              # Stage 1: number of top sectors to hold
 N_STOCKS_MIN = 10          # Stage 2: equal-weight book size (lower bound)
 N_STOCKS_MAX = 15          # Stage 2: equal-weight book size (upper bound)
@@ -55,6 +70,29 @@ GBM_PARAMS = dict(
     random_state=42,
 )
 
+# Alternative model variants (selectable in the dashboard). See model.py.
+#  * lambdarank: LightGBM learning-to-rank — optimises the cross-sectional
+#    ORDER of names each month (what selection actually uses), not pointwise
+#    return. Shallow + regularised because the monthly panel is small/noisy.
+LGBM_PARAMS = dict(
+    n_estimators=300, learning_rate=0.03, num_leaves=15, max_depth=4,
+    min_child_samples=30, subsample=0.8, subsample_freq=1,
+    colsample_bytree=0.8, reg_lambda=1.0, random_state=42,
+)
+RANK_GRADES = 5            # per-month quantile buckets used as lambdarank relevance
+#  * mlp: experimental neural net (sklearn MLP). Likely OVERFITS at current
+#    breadth — kept small + L2-regularised + early-stopped, and seed-unstable
+#    (average several seeds for a stable signal).
+MLP_PARAMS = dict(
+    hidden_layer_sizes=(32, 16), activation="relu", solver="adam", alpha=1e-3,
+    learning_rate_init=1e-3, batch_size=64, max_iter=500, early_stopping=True,
+    validation_fraction=0.15, n_iter_no_change=20, random_state=42,
+)
+# Single-seed MLP output is high-variance (two seeds can correlate only ~0.7).
+# Average this many seeds per month for a stable signal — the single biggest
+# lever for making the neural net competitive.
+MLP_SEEDS = 5
+
 # --- Backtest ---------------------------------------------------------------
 BACKTEST_YEARS = 5         # history window to download / test over
 START_CAPITAL = 100_000.0  # simulation only; no real money, no broker
@@ -78,7 +116,10 @@ CONF_LABEL = "P(beats cross-sectional median next month)"
 REBALANCE_BAND = 0.03      # only trade a name if target vs current weight
                            # drifts more than 3% of equity (anti-churn)
 MIN_ORDER_USD = 10.0       # skip dust orders below this notional
-RECOMPUTE_HOURS = 1        # how often run_loop recomputes during market hours
+RECOMPUTE_HOURS = 6        # how often run_loop recomputes (market hours only).
+                           # Signal is month-end, so the book is stable within a
+                           # month; a few checks/day catches the boundary + drift
+                           # without rebuilding the same book every hour.
 ENABLED = True             # master switch; set False to halt all trading
 PAPER_HOST_MARKER = "paper-api"  # broker refuses any endpoint without this
 
