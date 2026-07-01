@@ -35,3 +35,40 @@ S&P 500 PIT universe, 2020→now, costs 5bp, overlays ON (regime gate + vol targ
 ## Deflated Sharpe (multiple-testing haircut)
 
 - observed monthly SR 0.271, expected-max under 13 trials 0.086 → **DSR = 0.92** (want ≥ 0.95; below that the edge is not distinguishable from selection luck).
+
+## Follow-up cell: naive, overlays OFF (for a fair no-overlay ladder)
+
+- **naive 12-1 rank, overlays OFF** — total +199.2% · CAGR +20.4% · Sharpe 1.00 · maxDD -21% · beats SPY 52%
+- (ensemble overlays OFF, from above: +227.0% · CAGR +24.4% · Sharpe 1.07 · maxDD -20% · beats SPY 68%)
+
+## Conclusions (the honest read)
+
+1. **The ML stack is retired.** In the deployed pipeline (overlays ON) the
+   trained ensemble beats the naive momentum rank in **48% of resamples — a coin
+   flip**. Without overlays the ensemble's point estimate is higher (+227% vs
+   +199%, 68% vs 52%), but the ensemble config was the best of 13+ searched
+   trials and its **DSR is 0.92 < 0.95** — that gap is not distinguishable from
+   selection luck. Per the pre-registered criterion, the live model is now the
+   naive momentum rank (identical measured performance, no 20-minute retrains,
+   no seed variance, far fewer overfit knobs). Trained methods remain for research.
+2. **Stage 1 (sector momentum) is most of the strategy.** Plain EW top-3 sector
+   ETFs: +173%, Sharpe 1.03, maxDD −12%, beats SPY 56% — with zero stock picking.
+   The stock-selection layer adds return points in the bull sample but also risk;
+   its skill contribution is unproven.
+3. **The risk overlays are expensive insurance in this sample**: they cut
+   2020→2026 total return from +199/227% to ~+132% and the beat-SPY rate from
+   52–68% to ~27%, while trimming maxDD only ~3pts (this sample's crashes were
+   V-shaped; the overlays' value case is prolonged bears, which this sample
+   doesn't contain). They are kept **deliberately** as crash protection — that
+   is a values choice, not a data-fitted one; softening them by tuning on this
+   same sample would be exactly the snooping we just paid to eliminate.
+4. **Costs matter but don't flip conclusions**: 5→20bp shaves ~4pts of win-rate
+   from every stock rung; dividends are total-return consistent on both sides
+   (auto-adjusted prices for strategy and SPY alike).
+5. **Sizing**: conviction ≈ inverse-vol (indistinguishable — the confidence
+   numerator was noise, as suspected); equal-weight slightly worse. Inverse-vol
+   stays (same result, no dependence on an uncalibrated classifier).
+6. **Honest bottom line**: with crash protection ON, this strategy's 2020→2026
+   backtest is roughly SPY-class total return with a different risk profile —
+   not a reliable S&P-beater. The live paper curve is the only evaluation that
+   counts from 2026-07-01 onward.
