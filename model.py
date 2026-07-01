@@ -46,7 +46,7 @@ import lightgbm as lgb
 
 import config as C
 
-METHODS = ("gbm", "lambdarank", "mlp", "ensemble")
+METHODS = ("naive", "gbm", "lambdarank", "mlp", "ensemble")
 
 
 def _winner_labels(train: pd.DataFrame) -> np.ndarray:
@@ -214,6 +214,21 @@ def walk_forward_predict(samples: pd.DataFrame, feature_cols: list[str],
     """
     if method not in METHODS:
         raise ValueError(f"unknown method {method!r}; choose from {METHODS}")
+
+    if method == "naive":
+        # No ML at all: the edge is the within-month 12-1 momentum z-score.
+        # The 2020->2026 ablation (ABLATION.md) showed the trained ensemble beats
+        # this baseline in only 48% of resamples — statistically a coin flip —
+        # so per the pre-registered criterion the trained stack is not deployed.
+        # Kept: the same walk-forward month gating (predictions only from
+        # MIN_TRAIN_MONTHS on) so windows match the trained variants exactly.
+        fo = samples.dropna(subset=["mom_12_1_z"])
+        months_all = sorted(fo.index.get_level_values(0).unique())
+        eligible = set(months_all[C.MIN_TRAIN_MONTHS:])
+        keep = fo.index.get_level_values(0).isin(eligible)
+        out = fo.loc[keep, ["mom_12_1_z"]].rename(columns={"mom_12_1_z": "pred"})
+        out["confidence"] = 0.5
+        return out
 
     df = samples.dropna(subset=feature_cols + ["target"]).copy().sort_index(level=0)
     feat_only = samples.dropna(subset=feature_cols).copy()  # predict rows may lack target

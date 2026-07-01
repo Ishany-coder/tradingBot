@@ -1,5 +1,19 @@
 # Model search — beat the S&P 60% of the time?
 
+> ## ⚠️ CONFIG FROZEN 2026-07-01 — this file is a historical record
+>
+> Every number below was part of the meta-decision of which config to deploy
+> (13+ searched trials), so **all of it is in-sample for model selection** and
+> inflated by data snooping. The ablation (ABLATION.md) subsequently showed:
+> the trained ML stack beats a naive momentum-rank baseline in **48% of
+> resamples (a coin flip)**, and the Deflated Sharpe of the deployed config is
+> **0.92 < 0.95** — the measured edge is not reliably distinguishable from
+> selection luck. Per the pre-registered criterion the ML stack was retired;
+> the live model is the naive momentum rank + risk overlays.
+>
+> **The only evaluation that counts from here is the live paper forward curve**
+> (📡 dashboard panel). Backtests before this date are burned.
+
 Metric: paired block-bootstrap (n=2000) win-rate of strategy total return vs SPY.
 `win_rate (2020→)` = full window; `recent (2023→)` = rough out-of-sample check.
 Target: **win-rate ≥ 60%**.

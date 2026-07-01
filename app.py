@@ -125,12 +125,14 @@ univ_mode = st.sidebar.radio(
 mode = ("current" if univ_mode.startswith("Current") else
         "pit2020" if univ_mode.startswith("2020") else "sp500")
 
-# The model is the ENSEMBLE — rank-blend of GBM + lambdarank + NN. No picker.
+# One live model from config. Default: NAIVE momentum rank — the ablation
+# (ABLATION.md) showed the trained ML stack beats this baseline in only 48% of
+# resamples (a coin flip), so per the pre-registered criterion it isn't deployed.
 method = C.LIVE_METHOD
-st.sidebar.caption("🧠 **Model: Ensemble** (GBM + lambdarank + neural-net "
-                   "rank-blend, + ETF-relative-strength feature) — the live "
-                   "model. Beat the S&P in 79% of bootstrap resamples (66% "
-                   "recent). Set in config.LIVE_METHOD.")
+st.sidebar.caption(f"📐 **Model: {method}** — momentum rank + risk overlays "
+                   "(regime gate, vol target, sector caps). The trained ML stack "
+                   "measured as a coin-flip vs this baseline (ABLATION.md) and "
+                   "was retired. Set in config.LIVE_METHOD.")
 if st.sidebar.button("↻ Refresh data (re-download)"):
     st.session_state.force_reload = True  # consumed by the load below (force=True)
     load_bundle.clear()

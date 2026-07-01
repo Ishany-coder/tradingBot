@@ -47,3 +47,639 @@ $PM: possibly delisted; no price data found  (1d 2020-06-29 -> 2026-06-29)
   warnings.warn(f"resource_tracker: {name}: {e!r}")
 /Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/joblib/externals/loky/backend/resource_tracker.py:375: UserWarning: resource_tracker: /var/folders/8m/n6vy_19j3v1_xr_69q7407d00000gn/T/joblib_memmapping_folder_1211_b8d66f85a37f48ef8edc13e5b9ac587d_cb788f9191614ea89a53861be3d63f28: FileNotFoundError(2, 'No such file or directory')
   warnings.warn(f"resource_tracker: {name}: {e!r}")
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMRanker was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/sklearn/utils/validation.py:2827: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/joblib/externals/loky/backend/resource_tracker.py:359: UserWarning: resource_tracker: There appear to be 6 leaked semlock objects to clean up at shutdown
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/joblib/externals/loky/backend/resource_tracker.py:359: UserWarning: resource_tracker: There appear to be 2 leaked folder objects to clean up at shutdown
+  warnings.warn(
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/joblib/externals/loky/backend/resource_tracker.py:375: UserWarning: resource_tracker: /var/folders/8m/n6vy_19j3v1_xr_69q7407d00000gn/T/joblib_memmapping_folder_23756_741aa303b2604ce08b39e90017f207d7_ae902e2e95594f6689e8e713284ca30f: FileNotFoundError(2, 'No such file or directory')
+  warnings.warn(f"resource_tracker: {name}: {e!r}")
+/Users/ishanghosh/projects/tradingBot/.venv/lib/python3.14/site-packages/joblib/externals/loky/backend/resource_tracker.py:375: UserWarning: resource_tracker: /var/folders/8m/n6vy_19j3v1_xr_69q7407d00000gn/T/joblib_memmapping_folder_23756_71fa337b889341dba55f2bebd6018c24_e876415d6b4f4442af9793900f3ad268: FileNotFoundError(2, 'No such file or directory')
+  warnings.warn(f"resource_tracker: {name}: {e!r}")
