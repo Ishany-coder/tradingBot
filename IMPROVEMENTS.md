@@ -36,6 +36,32 @@ cap, 6-per-sector cap, hysteresis + banding as deployed. Costs 5bp.
 5. Winner gets a Deflated-Sharpe check on the selection window (N=32 trials);
    DSR < 0.95 is reported prominently either way.
 
+## RESULTS (2026-07-02) — rule applied, winner deployed
+
+Exactly **1 of 32 cells qualified**: `overlay=none · 4 sectors · 25 names ·
+mom_over_vol` — selection **56%** (total +191%, Sharpe 1.26, maxDD −17.7%),
+validation **58%** (total +197%, Sharpe 1.03, maxDD −15.6%), **DSR 0.985 ≥
+0.95** (first config in this project to survive the multiplicity haircut).
+Through the live path (naive method, config defaults): sel 66% / val 60%.
+
+Structure, not a spike: the top-4 cells are all the same family
+(risk-adjusted momentum + breadth + no overlay), and independent research
+(Dudler-Gmuer-Malamud risk-adjusted momentum; Grinold breadth; Zakamulin on SMA
+overlay decay) endorses each ingredient.
+
+Key insight: **breadth replaced the overlays as risk control** — the winner's
+max drawdown (−16/−18%) beats SPY's (−24%) with no exposure scaling at all,
+while the overlays cost 20–30 win-rate points everywhere. The live HWM drawdown
+kill switch (−20%) remains as the forecast-free safety net.
+
+Deployed: `N_SECTORS=4, N_STOCKS_MAX=25, RANK_SIGNAL="mom_over_vol",
+REGIME_OFF_EXPOSURE=1.0, TARGET_VOL=off`. Current book: 17 names across 5
+sectors (caps binding) — the single-theme concentration is structurally gone.
+
+Not deployed (round-2 candidates from research, in order of promise):
+sector-ETF sleeve blend (50/50), residual momentum (Blitz-Huij-Martens),
+per-sector absolute momentum as a smarter gate, tranched rebalancing.
+
 ## Pre-registered caveats
 
 * Pre-2020 has thinner delisted-price coverage → survivorship inflation is

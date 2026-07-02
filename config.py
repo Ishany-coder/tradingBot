@@ -31,6 +31,10 @@ TOP_HOLDINGS_N = 10        # constituents pulled per ETF (yfinance top holdings)
 # slice; see MODELS.md). "B" = momentum + quality screen (failed the 60% bar at
 # 45%). The whole app + trader read this, so there is exactly ONE model. Switch here.
 STRATEGY_VARIANT = "A"
+# Ranking signal for the naive model: "mom_over_vol" (risk-adjusted momentum,
+# 12-1 return / volatility, z-scored per month) won the pre-registered 32-cell
+# grid (IMPROVEMENTS.md): sel 56% / val 58% / DSR 0.985. "mom_z" = raw momentum.
+RANK_SIGNAL = "mom_over_vol"
 # The deployed strategy's universe + model — used by trader.py AND the recurring
 # run_loop, so the live bot and every scheduled run trade the SAME thing (and a
 # scheduled run can't silently revert the account to a different universe/model).
@@ -43,9 +47,10 @@ LIVE_UNIVERSE = "sp500"        # "current" | "pit2020" | "sp500"
 # variance, no OOM risk, far fewer overfit knobs. The trained methods remain
 # available for research.
 LIVE_METHOD = "naive"          # "naive" | "gbm" | "lambdarank" | "mlp" | "ensemble"
-N_SECTORS = 3              # Stage 1: number of top sectors to hold
-N_STOCKS_MIN = 10          # Stage 2: equal-weight book size (lower bound)
-N_STOCKS_MAX = 15          # Stage 2: equal-weight book size (upper bound)
+N_SECTORS = 4              # Stage 1: top sectors to hold (grid winner: breadth)
+N_STOCKS_MIN = 10          # Stage 2: book size lower bound (else empty book)
+N_STOCKS_MAX = 25          # Stage 2: book size upper bound (grid winner: breadth
+                           # did the drawdown work the overlays were doing)
 
 # Momentum lookbacks, in months.
 MOM_LONG = 12              # "12-1" long leg
@@ -122,14 +127,16 @@ INVEST_FRACTION = 0.98     # cash buffer; never lever (scaled down by risk overl
 CONF_LABEL = "P(beats cross-sectional median next month)"
 
 # --- Risk overlays (crash protection) ----------------------------------------
-# Time-series-momentum regime gate (Faber/Moskowitz): when SPY month-end closes
-# below its 10-month SMA, scale gross exposure down. Long-only momentum's worst
-# events (2008-09) happen below this line.
+# DISABLED by the pre-registered grid (IMPROVEMENTS.md): on BOTH the fresh
+# 2012-2019 window and 2020->, every overlay variant cost 20-30 win-rate points
+# while breadth (4 sectors / 25 names) delivered BETTER max drawdown (-16/-18%
+# vs SPY's -24%) for free. Zakamulin 2014 + GEM live decay corroborate that SMA
+# overlays underdeliver out-of-sample. The live safety net is the HWM drawdown
+# kill switch (MAX_LIVE_DRAWDOWN below), which needs no forecast to work.
+# Re-enable by setting REGIME_OFF_EXPOSURE < 1 and/or TARGET_VOL < 1.
 REGIME_SMA_MONTHS = 10
-REGIME_OFF_EXPOSURE = 0.5  # exposure multiplier when the gate is OFF (risk-off)
-# Portfolio volatility targeting (Moreira-Muir): scale exposure so trailing
-# realized vol ~ TARGET_VOL. Never levers above 1.0.
-TARGET_VOL = 0.18          # annualized; exposure = min(1, TARGET_VOL / realized)
+REGIME_OFF_EXPOSURE = 1.0  # 1.0 = gate off (grid winner)
+TARGET_VOL = 99.0          # 99 = vol targeting off (grid winner)
 VOL_LOOKBACK_MONTHS = 6    # trailing window for realized portfolio vol
 
 # --- Diversification limits ---------------------------------------------------

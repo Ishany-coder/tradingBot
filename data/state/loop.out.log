@@ -298,3 +298,5 @@ target book (15 names):
   REBALANCE  BUY  KLAC   $  6,986.12
 [loop] started — recompute every 6h, market hours only. Create /Users/ishanghosh/projects/tradingBot/data/state/STOP to halt. Ctrl-C to stop the loop.
 [loop] market closed — skipping rebuild this cycle.
+[loop] started — recompute every 6h, market hours only. Create /Users/ishanghosh/projects/tradingBot/data/state/STOP to halt. Ctrl-C to stop the loop.
+[loop] market closed — skipping rebuild this cycle.

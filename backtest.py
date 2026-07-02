@@ -105,8 +105,11 @@ def build_samples(force: bool = False, universe_override: dict | None = None,
     etf_rs = F.etf_rs_beta_panel(daily, _basket, mprices.index)
 
     # Point-in-time fundamentals timeline per stock (built once). EDGAR gives
-    # filing-dated, multi-year fundamentals; yfinance is the thin fallback.
-    if fundamentals_source == "edgar":
+    # filing-dated, multi-year fundamentals; yfinance is the thin fallback;
+    # "none" skips them entirely (variant-A / price-only runs don't use them).
+    if fundamentals_source == "none":
+        timelines = {s: pd.DataFrame() for s in stocks}
+    elif fundamentals_source == "edgar":
         timelines = {s: edgar.build_timeline(s, force=force) for s in stocks}
     else:
         timelines = {s: F.build_fundamentals_timeline(s, force=force) for s in stocks}

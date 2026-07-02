@@ -216,17 +216,28 @@ def walk_forward_predict(samples: pd.DataFrame, feature_cols: list[str],
         raise ValueError(f"unknown method {method!r}; choose from {METHODS}")
 
     if method == "naive":
-        # No ML at all: the edge is the within-month 12-1 momentum z-score.
-        # The 2020->2026 ablation (ABLATION.md) showed the trained ensemble beats
-        # this baseline in only 48% of resamples — statistically a coin flip —
-        # so per the pre-registered criterion the trained stack is not deployed.
+        # No ML at all. The ablation (ABLATION.md) showed the trained ensemble
+        # beats a naive momentum rank in only 48% of resamples (coin flip), so
+        # per the pre-registered criterion the trained stack is not deployed.
+        # Signal (config.RANK_SIGNAL):
+        #   * "mom_over_vol" — RISK-ADJUSTED momentum (12-1 return / vol),
+        #     z-scored within month. Won the pre-registered 32-cell grid
+        #     (IMPROVEMENTS.md): sel 56% / val 58% / DSR 0.985.
+        #   * "mom_z" — raw 12-1 momentum z-score.
         # Kept: the same walk-forward month gating (predictions only from
         # MIN_TRAIN_MONTHS on) so windows match the trained variants exactly.
-        fo = samples.dropna(subset=["mom_12_1_z"])
-        months_all = sorted(fo.index.get_level_values(0).unique())
+        if getattr(C, "RANK_SIGNAL", "mom_z") == "mom_over_vol":
+            raw = (samples["mom_12_1"] / samples["vol"]).replace(
+                [np.inf, -np.inf], np.nan)
+            g = raw.groupby(level=0)
+            sig = ((raw - g.transform("mean")) / g.transform("std")).clip(-4, 4)
+            out = sig.dropna().to_frame("pred")
+        else:
+            fo = samples.dropna(subset=["mom_12_1_z"])
+            out = fo[["mom_12_1_z"]].rename(columns={"mom_12_1_z": "pred"})
+        months_all = sorted(out.index.get_level_values(0).unique())
         eligible = set(months_all[C.MIN_TRAIN_MONTHS:])
-        keep = fo.index.get_level_values(0).isin(eligible)
-        out = fo.loc[keep, ["mom_12_1_z"]].rename(columns={"mom_12_1_z": "pred"})
+        out = out.loc[out.index.get_level_values(0).isin(eligible)].copy()
         out["confidence"] = 0.5
         return out
 
